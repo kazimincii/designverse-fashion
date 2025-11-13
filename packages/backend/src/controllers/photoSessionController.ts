@@ -63,7 +63,8 @@ export const getPhotoSession = async (req: AuthRequest, res: Response) => {
 
 export const uploadPhoto = async (req: AuthRequest, res: Response) => {
   try {
-    const { sessionId, subType } = req.body;
+    const { sessionId } = req.params;
+    const { subType } = req.body;
     const file = req.file;
     const userId = req.user!.userId;
 
@@ -98,7 +99,8 @@ export const uploadPhoto = async (req: AuthRequest, res: Response) => {
 
 export const applyVirtualTryOn = async (req: AuthRequest, res: Response) => {
   try {
-    const { sessionId, productAssetId, modelAssetId } = req.body;
+    const { sessionId } = req.params;
+    const { productAssetId, modelAssetId } = req.body;
     const userId = req.user!.userId;
 
     const session = await photoSessionService.getSession(sessionId);
@@ -139,7 +141,8 @@ export const applyVirtualTryOn = async (req: AuthRequest, res: Response) => {
 
 export const generateVariations = async (req: AuthRequest, res: Response) => {
   try {
-    const { sessionId, baseAssetId, mood, framing, count } = req.body;
+    const { sessionId } = req.params;
+    const { baseAssetId, mood, framing, count } = req.body;
     const userId = req.user!.userId;
 
     const session = await photoSessionService.getSession(sessionId);
@@ -180,7 +183,8 @@ export const generateVariations = async (req: AuthRequest, res: Response) => {
 
 export const upscaleImage = async (req: AuthRequest, res: Response) => {
   try {
-    const { sessionId, assetId, factor } = req.body;
+    const { sessionId } = req.params;
+    const { assetId, factor } = req.body;
     const userId = req.user!.userId;
 
     const session = await photoSessionService.getSession(sessionId);
@@ -217,7 +221,8 @@ export const upscaleImage = async (req: AuthRequest, res: Response) => {
 
 export const createAnimation = async (req: AuthRequest, res: Response) => {
   try {
-    const { sessionId, assetIds, duration, style } = req.body;
+    const { sessionId } = req.params;
+    const { assetIds, duration, style } = req.body;
     const userId = req.user!.userId;
 
     const session = await photoSessionService.getSession(sessionId);

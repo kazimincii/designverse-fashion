@@ -31,7 +31,7 @@ router.delete('/sessions/:id', authenticate, deletePhotoSession);
 
 // Step 1: Upload
 router.post(
-  '/sessions/upload',
+  '/sessions/:sessionId/upload',
   authenticate,
   uploadMiddleware,
   uploadPhoto
@@ -39,10 +39,9 @@ router.post(
 
 // Step 2: Virtual try-on
 router.post(
-  '/sessions/try-on',
+  '/sessions/:sessionId/try-on',
   authenticate,
   [
-    body('sessionId').notEmpty(),
     body('productAssetId').notEmpty(),
     body('modelAssetId').notEmpty(),
     validate,
@@ -52,10 +51,9 @@ router.post(
 
 // Step 3: Generate variations
 router.post(
-  '/sessions/variations',
+  '/sessions/:sessionId/variations',
   authenticate,
   [
-    body('sessionId').notEmpty(),
     body('baseAssetId').notEmpty(),
     body('mood').optional().isIn(['minimalist', 'dynamic', 'dramatic']),
     body('framing').optional(),
@@ -67,10 +65,9 @@ router.post(
 
 // Step 4: Upscale
 router.post(
-  '/sessions/upscale',
+  '/sessions/:sessionId/upscale',
   authenticate,
   [
-    body('sessionId').notEmpty(),
     body('assetId').notEmpty(),
     body('factor').isInt({ min: 2, max: 4 }),
     validate,
@@ -80,10 +77,9 @@ router.post(
 
 // Step 5: Create animation
 router.post(
-  '/sessions/animate',
+  '/sessions/:sessionId/animate',
   authenticate,
   [
-    body('sessionId').notEmpty(),
     body('assetIds').isArray({ min: 1 }),
     body('duration').optional().isInt({ min: 5, max: 10 }),
     body('style').optional().isIn(['SUBTLE_CINEMATIC', 'LOOKBOOK', 'DYNAMIC']),
