@@ -21,6 +21,10 @@ import VariationsStep from './pages/premium-photo/VariationsStep';
 import UpscaleStep from './pages/premium-photo/UpscaleStep';
 import AnimateStep from './pages/premium-photo/AnimateStep';
 
+// Reference Management
+import ReferenceManagementPage from './pages/ReferenceManagementPage';
+import CreateReferencePage from './pages/CreateReferencePage';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -91,6 +95,10 @@ function App() {
             <Route path="/premium-photo/variations" element={<ProtectedRoute><PhotoSessionProvider><VariationsStep /></PhotoSessionProvider></ProtectedRoute>} />
             <Route path="/premium-photo/upscale" element={<ProtectedRoute><PhotoSessionProvider><UpscaleStep /></PhotoSessionProvider></ProtectedRoute>} />
             <Route path="/premium-photo/animate" element={<ProtectedRoute><PhotoSessionProvider><AnimateStep /></PhotoSessionProvider></ProtectedRoute>} />
+
+            {/* Reference Management */}
+            <Route path="/references/manage" element={<ProtectedRoute><PhotoSessionProvider><ReferenceManagementPage /></PhotoSessionProvider></ProtectedRoute>} />
+            <Route path="/references/create" element={<ProtectedRoute><PhotoSessionProvider><CreateReferencePage /></PhotoSessionProvider></ProtectedRoute>} />
           </Routes>
         </Router>
         <Toaster position="top-right" />
