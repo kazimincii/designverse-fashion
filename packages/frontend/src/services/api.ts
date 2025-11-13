@@ -79,3 +79,29 @@ export const socialApi = {
   markNotificationAsRead: (id: string) =>
     api.patch(`/social/notifications/${id}/read`),
 };
+
+// Photo Session API
+export const photoSessionApi = {
+  createSession: (data: { title: string }) =>
+    api.post('/photo/sessions', data),
+  getUserSessions: () => api.get('/photo/sessions'),
+  getSession: (sessionId: string) => api.get(`/photo/sessions/${sessionId}`),
+  uploadPhoto: (sessionId: string, file: File, subType: 'PRODUCT' | 'MODEL') => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('subType', subType);
+    return api.post(`/photo/sessions/${sessionId}/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  applyVirtualTryOn: (sessionId: string, data: { productAssetId: string; modelAssetId: string }) =>
+    api.post(`/photo/sessions/${sessionId}/try-on`, data),
+  generateVariations: (sessionId: string, data: { baseAssetId: string; mood?: string; framing?: string; count?: number }) =>
+    api.post(`/photo/sessions/${sessionId}/variations`, data),
+  upscaleImage: (sessionId: string, data: { assetId: string; factor?: number }) =>
+    api.post(`/photo/sessions/${sessionId}/upscale`, data),
+  createAnimation: (sessionId: string, data: { assetIds: string[]; duration?: number; style?: string }) =>
+    api.post(`/photo/sessions/${sessionId}/animate`, data),
+};

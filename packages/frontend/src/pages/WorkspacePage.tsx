@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Video, Clock, Eye, Heart } from 'lucide-react';
+import { Plus, Video, Clock, Eye, Heart, Camera } from 'lucide-react';
 import { storyApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -77,13 +77,25 @@ export default function WorkspacePage() {
         {/* Actions */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-white">My Stories</h2>
-          <button
-            onClick={handleCreateStory}
-            className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            <span>New Story</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            <Link
+              to="/premium-photo"
+              className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all relative"
+            >
+              <Camera className="w-5 h-5" />
+              <span>Premium Photo</span>
+              <span className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                BETA
+              </span>
+            </Link>
+            <button
+              onClick={handleCreateStory}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              <span>New Story</span>
+            </button>
+          </div>
         </div>
 
         {/* Filters */}

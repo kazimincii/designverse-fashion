@@ -37,6 +37,11 @@ enum JobType {
   GENERATE_CLIP
   UPSCALE
   RESTYLE
+  PHOTO_TRYON
+  PHOTO_ENHANCE
+  PHOTO_VARIATION
+  PHOTO_UPSCALE
+  PHOTO_ANIMATION
 }
 
 enum SourceType {
@@ -56,6 +61,7 @@ enum NotificationType {
   NEW_FOLLOWER
   STORY_EXPORT_READY
   LOW_CREDITS
+  PHOTO_SESSION_READY
 }
 
 model User {
@@ -83,6 +89,7 @@ model User {
   followers     Follow[] @relation("Followers")
   following     Follow[] @relation("Following")
   notifications Notification[]
+  photoSessions PhotoSession[]
 
   @@index([email])
   @@index([handle])
@@ -247,6 +254,7 @@ model Job {
 
   // Relations
   owner             User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photoAssets       PhotoAsset[]
 
   @@index([ownerId])
   @@index([status])
@@ -318,4 +326,87 @@ model Notification {
 
   @@index([userId])
   @@index([readAt])
+}
+
+enum PhotoSessionStatus {
+  DRAFT
+  STEP_1_UPLOAD
+  STEP_2_ENHANCE
+  STEP_3_VARIATIONS
+  STEP_4_UPSCALE
+  STEP_5_ANIMATION
+  COMPLETED
+}
+
+enum PhotoAssetSubType {
+  PRODUCT
+  MODEL
+  GENERATED
+  UPSCALED
+  ANIMATION_COVER
+}
+
+enum AnimationStyle {
+  SUBTLE_CINEMATIC
+  LOOKBOOK
+  DYNAMIC
+}
+
+model PhotoSession {
+  id          String             @id @default(cuid())
+  ownerId     String
+  title       String
+  status      PhotoSessionStatus @default(DRAFT)
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  // Relations
+  owner       User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photoAssets PhotoAsset[]
+  photoAnimations PhotoAnimation[]
+
+  @@index([ownerId])
+  @@index([status])
+}
+
+model PhotoAsset {
+  id            String            @id @default(cuid())
+  sessionId     String
+  type          AssetType
+  subType       PhotoAssetSubType
+  sourceType    SourceType
+  url           String
+  resolutionW   Int?
+  resolutionH   Int?
+  relatedJobId  String?
+  metadataJson  Json?
+
+  createdAt     DateTime          @default(now())
+
+  // Relations
+  session       PhotoSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  relatedJob    Job?              @relation(fields: [relatedJobId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([subType])
+}
+
+model PhotoAnimation {
+  id              String         @id @default(cuid())
+  sessionId       String
+  videoUrl        String
+  durationSeconds Float
+  fps             Int            @default(30)
+  resolutionW     Int            @default(1920)
+  resolutionH     Int            @default(1080)
+  style           AnimationStyle
+  sourceAssetIds  String[]
+
+  createdAt       DateTime       @default(now())
+
+  // Relations
+  session         PhotoSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
 }

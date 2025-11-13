@@ -12,6 +12,7 @@ import StoryEditorPage from './pages/StoryEditorPage';
 import StoryViewPage from './pages/StoryViewPage';
 import ProfilePage from './pages/ProfilePage';
 import FeedPage from './pages/FeedPage';
+import PremiumPhotoPage from './pages/PremiumPhotoPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +76,7 @@ function App() {
             {/* Protected Routes */}
             <Route path="/workspace" element={<ProtectedRoute><WorkspacePage /></ProtectedRoute>} />
             <Route path="/editor/:storyId?" element={<ProtectedRoute><StoryEditorPage /></ProtectedRoute>} />
+            <Route path="/premium-photo" element={<ProtectedRoute><PremiumPhotoPage /></ProtectedRoute>} />
           </Routes>
         </Router>
         <Toaster position="top-right" />

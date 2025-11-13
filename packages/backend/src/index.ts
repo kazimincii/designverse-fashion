@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import { connectDatabase } from './config/database';
+import { connectDatabase, prisma } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import rateLimit from 'express-rate-limit';
 
@@ -15,6 +15,7 @@ import socialRoutes from './routes/socialRoutes';
 import aiRoutes from './routes/aiRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import templateRoutes from './routes/templateRoutes';
+import photoSessionRoutes from './routes/photoSessionRoutes';
 
 // Import worker (starts processing queue)
 import './workers/videoGenerationWorker';
@@ -57,6 +58,7 @@ app.use('/api/social', socialRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', templateRoutes);
+app.use('/api/photo', photoSessionRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -73,6 +75,9 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDatabase();
+
+    // Make prisma available in controllers
+    app.locals.prisma = prisma;
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
