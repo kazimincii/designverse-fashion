@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Upload, Play, Plus, Trash2 } from 'lucide-react';
 import { storyApi, clipApi } from '../services/api';
 import toast from 'react-hot-toast';
 import { Story, Clip } from '../types';
+import AIGenerationPanel from '../components/AIGenerationPanel';
 
 export default function StoryEditorPage() {
   const { storyId } = useParams();
@@ -198,50 +199,61 @@ export default function StoryEditorPage() {
             </div>
           </div>
 
-          {/* Right Panel - Properties */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Story Details</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Describe your story..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Stats
-                </label>
-                <div className="bg-gray-800 rounded-lg p-3 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Total Duration</span>
-                    <span>
-                      {storyData?.totalDurationSeconds
-                        ? `${storyData.totalDurationSeconds.toFixed(1)}s`
-                        : '0s'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Clips</span>
-                    <span>{storyData?.clips?.length || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Status</span>
-                    <span
-                      className={
-                        storyData?.status === 'PUBLISHED'
-                          ? 'text-green-400'
-                          : 'text-yellow-400'
-                      }
-                    >
-                      {storyData?.status}
-                    </span>
+          {/* Right Panel - AI Generation & Properties */}
+          <div className="space-y-6">
+            {/* AI Generation Panel */}
+            <AIGenerationPanel
+              storyId={storyId}
+              onVideoGenerated={() => {
+                queryClient.invalidateQueries({ queryKey: ['story', storyId] });
+              }}
+            />
+
+            {/* Story Details */}
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Story Details</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Describe your story..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Stats
+                  </label>
+                  <div className="bg-gray-900 rounded-lg p-3 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Total Duration</span>
+                      <span>
+                        {storyData?.totalDurationSeconds
+                          ? `${storyData.totalDurationSeconds.toFixed(1)}s`
+                          : '0s'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Clips</span>
+                      <span>{storyData?.clips?.length || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Status</span>
+                      <span
+                        className={
+                          storyData?.status === 'PUBLISHED'
+                            ? 'text-green-400'
+                            : 'text-yellow-400'
+                        }
+                      >
+                        {storyData?.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

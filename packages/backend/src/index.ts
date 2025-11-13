@@ -12,6 +12,12 @@ import authRoutes from './routes/authRoutes';
 import storyRoutes from './routes/storyRoutes';
 import clipRoutes from './routes/clipRoutes';
 import socialRoutes from './routes/socialRoutes';
+import aiRoutes from './routes/aiRoutes';
+import uploadRoutes from './routes/uploadRoutes';
+import templateRoutes from './routes/templateRoutes';
+
+// Import worker (starts processing queue)
+import './workers/videoGenerationWorker';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +54,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/stories', storyRoutes);
 app.use('/api/clips', clipRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api', uploadRoutes);
+app.use('/api', templateRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
