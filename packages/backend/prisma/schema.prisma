@@ -1,0 +1,321 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanType {
+  FREE
+  PAID
+}
+
+enum Privacy {
+  PRIVATE
+  UNLISTED
+  PUBLIC
+}
+
+enum StoryStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum JobType {
+  GENERATE_CLIP
+  UPSCALE
+  RESTYLE
+}
+
+enum SourceType {
+  GENERATED
+  UPLOADED
+}
+
+enum AssetType {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+enum NotificationType {
+  LIKE_STORY
+  COMMENT_STORY
+  NEW_FOLLOWER
+  STORY_EXPORT_READY
+  LOW_CREDITS
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?
+  authProvider  String?  @default("email")
+  displayName   String
+  handle        String   @unique
+  bio           String?
+  avatarUrl     String?
+  planType      PlanType @default(FREE)
+  creditsBalance Int     @default(100)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  stories       Story[]
+  folders       Folder[]
+  assets        Asset[]
+  jobs          Job[]
+  likes         Like[]
+  comments      Comment[]
+  followers     Follow[] @relation("Followers")
+  following     Follow[] @relation("Following")
+  notifications Notification[]
+
+  @@index([email])
+  @@index([handle])
+}
+
+model Story {
+  id                  String      @id @default(cuid())
+  ownerId             String
+  title               String
+  description         String?
+  status              StoryStatus @default(DRAFT)
+  privacy             Privacy     @default(UNLISTED)
+  coverClipId         String?
+  totalDurationSeconds Float?
+  publishedAt         DateTime?
+  viewCount           Int         @default(0)
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // Relations
+  owner               User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  clips               Clip[]
+  textOverlays        TextOverlay[]
+  audioTracks         AudioTrack[]
+  storyFolders        StoryFolder[]
+  likes               Like[]
+  comments            Comment[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([privacy])
+  @@index([publishedAt])
+}
+
+model Clip {
+  id            String      @id @default(cuid())
+  storyId       String
+  orderIndex    Int
+  sourceType    SourceType
+  inputPrompt   String?
+  modelProvider String?
+  modelName     String?
+  videoUrl      String
+  thumbnailUrl  String?
+  durationSeconds Float
+  metadata      Json?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  story         Story       @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  textOverlays  TextOverlay[]
+
+  @@index([storyId])
+}
+
+model TextOverlay {
+  id         String   @id @default(cuid())
+  storyId    String
+  clipId     String?
+  startTime  Float
+  endTime    Float
+  content    String
+  position   String   @default("center")
+  styleJson  Json?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  story      Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  clip       Clip?    @relation(fields: [clipId], references: [id], onDelete: SetNull)
+
+  @@index([storyId])
+}
+
+model AudioTrack {
+  id         String   @id @default(cuid())
+  storyId    String
+  type       String   @default("music")
+  sourceType String
+  audioUrl   String
+  startTime  Float
+  endTime    Float
+  volume     Float    @default(1.0)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  story      Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@index([storyId])
+}
+
+model Folder {
+  id             String   @id @default(cuid())
+  ownerId        String
+  name           String
+  parentFolderId String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parentFolder   Folder?  @relation("FolderHierarchy", fields: [parentFolderId], references: [id])
+  childFolders   Folder[] @relation("FolderHierarchy")
+  storyFolders   StoryFolder[]
+
+  @@index([ownerId])
+}
+
+model StoryFolder {
+  id        String   @id @default(cuid())
+  storyId   String
+  folderId  String
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, folderId])
+  @@index([storyId])
+  @@index([folderId])
+}
+
+model Asset {
+  id           String    @id @default(cuid())
+  ownerId      String
+  type         AssetType
+  url          String
+  name         String
+  tags         String[]
+  metadataJson Json?
+
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  owner        User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([type])
+}
+
+model Job {
+  id                String    @id @default(cuid())
+  ownerId           String
+  jobType           JobType
+  status            JobStatus @default(QUEUED)
+  inputPayloadJson  Json
+  outputPayloadJson Json?
+  modelProvider     String?
+  errorMessage      String?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  owner             User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([status])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  storyId   String
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storyId])
+  @@index([userId])
+  @@index([storyId])
+}
+
+model Comment {
+  id              String    @id @default(cuid())
+  storyId         String
+  authorId        String
+  parentCommentId String?
+  content         String
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  story           Story     @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("CommentReplies")
+
+  @@index([storyId])
+  @@index([authorId])
+}
+
+model Follow {
+  id             String   @id @default(cuid())
+  followerId     String
+  followedId     String
+
+  createdAt      DateTime @default(now())
+
+  // Relations
+  follower       User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed       User     @relation("Followers", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  payloadJson Json
+  readAt      DateTime?
+
+  createdAt   DateTime         @default(now())
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+}
