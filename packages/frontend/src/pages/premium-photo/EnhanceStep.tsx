@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { photoSessionApi } from '../../services/api';
 import { usePhotoSession } from '../../contexts/PhotoSessionContext';
 import PremiumPhotoLayout from './PremiumPhotoLayout';
+import ReferenceSelector from '../../components/ReferenceSelector';
 
 export default function EnhanceStep() {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export default function EnhanceStep() {
   } = usePhotoSession();
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedCharacterRef, setSelectedCharacterRef] = useState<string | undefined>();
+  const [selectedGarmentRef, setSelectedGarmentRef] = useState<string | undefined>();
 
   const handleGenerateEditorialShots = async () => {
     if (!sessionId || productPhotos.length === 0 || modelPhotos.length === 0) {
@@ -98,6 +101,37 @@ export default function EnhanceStep() {
               </div>
             )}
           </div>
+
+          {/* Reference Selectors */}
+          {sessionId && (
+            <div className="space-y-6 bg-gray-800/50 rounded-lg p-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
+                  <span>🎯</span>
+                  <span>AI Consistency References</span>
+                </h3>
+                <p className="text-sm text-gray-400 mb-6">
+                  Select references to maintain consistent character and garment appearance across generations
+                </p>
+              </div>
+
+              <ReferenceSelector
+                sessionId={sessionId}
+                type="character"
+                selectedId={selectedCharacterRef}
+                onSelect={setSelectedCharacterRef}
+                label="Character Reference (Optional)"
+              />
+
+              <ReferenceSelector
+                sessionId={sessionId}
+                type="garment"
+                selectedId={selectedGarmentRef}
+                onSelect={setSelectedGarmentRef}
+                label="Garment Reference (Optional)"
+              />
+            </div>
+          )}
 
           <div className="space-y-4">
             <div>
