@@ -362,9 +362,13 @@ model PhotoSession {
   updatedAt DateTime @updatedAt
 
   // Relations
-  owner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  photoAssets     PhotoAsset[]
-  photoAnimations PhotoAnimation[]
+  owner                User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photoAssets          PhotoAsset[]
+  photoAnimations      PhotoAnimation[]
+  characterReferences  CharacterReference[]
+  garmentReferences    GarmentReference[]
+  styleReferences      StyleReference[]
+  generationHistories  GenerationHistory[]
 
   @@index([ownerId])
   @@index([status])
@@ -409,4 +413,209 @@ model PhotoAnimation {
   session PhotoSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
+}
+
+// ============================================================
+// CONSISTENCY & REFERENCE SYSTEM
+// ============================================================
+
+enum ReferenceType {
+  CHARACTER
+  GARMENT
+  STYLE
+  LOCATION
+  LIGHTING
+  MOOD
+}
+
+// Character reference for consistent face/body across generations
+model CharacterReference {
+  id              String  @id @default(cuid())
+  sessionId       String
+  name            String  // e.g., "Model A", "Main Character"
+  description     String?
+  faceImageUrl    String  // Primary face reference image
+  bodyImageUrl    String? // Full body reference (optional)
+  thumbnailUrl    String? // Thumbnail for UI
+
+  // AI Embeddings & Metadata
+  faceEmbedding   Json?   // Face recognition embedding (e.g., InsightFace)
+  visualFeatures  Json?   // Hair color, eye color, skin tone, etc.
+  metadataJson    Json?   // Additional metadata
+
+  isActive        Boolean @default(true)
+  usageCount      Int     @default(0) // Track how many times used
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session             PhotoSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  generationHistories GenerationHistory[]
+
+  @@index([sessionId])
+  @@index([isActive])
+}
+
+// Garment/outfit reference for consistent clothing across generations
+model GarmentReference {
+  id                 String   @id @default(cuid())
+  sessionId          String
+  name               String   // e.g., "Red Dress", "Black Jacket"
+  description        String?
+  referenceImageUrl  String   // Primary garment reference image
+  thumbnailUrl       String?
+
+  // Garment Properties
+  category           String   // "dress", "jacket", "pants", "shoes", etc.
+  colorPalette       String[] // ["#FF0000", "#8B0000"] - main colors
+  colorNames         String[] // ["Red", "Burgundy"] - human readable
+  primaryColor       String?  // Dominant color
+
+  // AI Embeddings & Metadata
+  garmentEmbedding   Json?    // Visual embedding for garment matching
+  fabricTexture      String?  // "silk", "cotton", "leather", etc.
+  pattern            String?  // "solid", "stripes", "floral", etc.
+  style              String?  // "casual", "formal", "sporty", etc.
+  metadataJson       Json?
+
+  isActive           Boolean  @default(true)
+  usageCount         Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session             PhotoSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  generationHistories GenerationHistory[]
+
+  @@index([sessionId])
+  @@index([category])
+  @@index([isActive])
+}
+
+// Style/Scene reference for consistent environment/mood/lighting
+model StyleReference {
+  id                String        @id @default(cuid())
+  sessionId         String
+  type              ReferenceType // STYLE, LOCATION, LIGHTING, MOOD
+  name              String        // e.g., "Studio Lighting", "Urban Street"
+  description       String?
+  referenceImageUrl String?       // Optional reference image
+  thumbnailUrl      String?
+
+  // Prompt Engineering
+  promptTemplate    String        // Consistency-enhancing prompt fragment
+  negativePrompt    String?       // What to avoid
+
+  // Style Parameters
+  styleEmbedding    Json?         // CLIP or similar style embedding
+  colorPalette      String[]      // Color scheme for scene
+  lightingSetup     String?       // "soft", "dramatic", "high-key", "natural"
+  mood              String?       // "minimalist", "dramatic", "playful"
+  cameraAngle       String?       // "eye-level", "high-angle", "low-angle"
+
+  // AI Model Parameters
+  modelParameters   Json?         // Model-specific parameters for consistency
+  metadataJson      Json?
+
+  isActive          Boolean       @default(true)
+  usageCount        Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session             PhotoSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  generationHistories GenerationHistory[]
+
+  @@index([sessionId])
+  @@index([type])
+  @@index([isActive])
+}
+
+// Track each generation with its references and quality metrics
+model GenerationHistory {
+  id                String  @id @default(cuid())
+  sessionId         String
+  generatedAssetId  String  // Reference to PhotoAsset
+  jobId             String? // Reference to Job if applicable
+
+  // References Used
+  characterRefId    String?
+  garmentRefId      String?
+  styleRefId        String?
+
+  // Generation Details
+  stepNumber        Int     // Which step in the workflow (1-5)
+  basePrompt        String  // Original user prompt
+  enhancedPrompt    String  // AI-enhanced prompt with references
+  negativePrompt    String?
+
+  // Quality Metrics
+  consistencyScore  Float?  // Overall consistency score (0-100)
+  faceSimScore      Float?  // Face similarity score (0-100)
+  garmentAccScore   Float?  // Garment accuracy score (0-100)
+  styleMatchScore   Float?  // Style matching score (0-100)
+
+  // AI Model Info
+  modelProvider     String? // "replicate", "openai", "midjourney"
+  modelName         String? // Specific model used
+  modelVersion      String?
+
+  // Performance
+  processingTimeMs  Int?    // Generation time in milliseconds
+  apiCostUsd        Float?  // API cost in USD
+
+  // Status
+  wasRegenerated    Boolean @default(false) // If this replaced a low-quality generation
+  userRating        Int?    // User satisfaction rating (1-5)
+  userFeedback      String? // User comments
+
+  metadataJson      Json?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  session      PhotoSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  characterRef CharacterReference?   @relation(fields: [characterRefId], references: [id], onDelete: SetNull)
+  garmentRef   GarmentReference?     @relation(fields: [garmentRefId], references: [id], onDelete: SetNull)
+  styleRef     StyleReference?       @relation(fields: [styleRefId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([generatedAssetId])
+  @@index([characterRefId])
+  @@index([garmentRefId])
+  @@index([styleRefId])
+  @@index([consistencyScore])
+  @@index([createdAt])
+}
+
+// Preset reference collections (reusable templates)
+model ReferencePreset {
+  id                 String  @id @default(cuid())
+  creatorId          String  // User who created this preset
+  name               String
+  description        String?
+  category           String  // "fashion", "editorial", "lifestyle", etc.
+  thumbnailUrl       String?
+
+  // Preset Data (JSON containing reference configs)
+  presetData         Json    // Contains character, garment, style configs
+
+  // Usage & Popularity
+  isPublic           Boolean @default(false)
+  usageCount         Int     @default(0)
+  averageRating      Float?
+
+  // Tags for discovery
+  tags               String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([category])
+  @@index([isPublic])
+  @@index([usageCount])
 }
