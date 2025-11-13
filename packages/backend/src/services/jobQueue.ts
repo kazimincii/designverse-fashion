@@ -8,33 +8,8 @@ export const videoGenerationQueue = new Queue('video-generation', {
   },
 });
 
-// Job processor
-videoGenerationQueue.process(async (job) => {
-  console.log(`Processing job ${job.id}:`, job.data);
-
-  try {
-    const { jobId, userId, jobType, inputPayload } = job.data;
-
-    // Update job status to RUNNING
-    // await updateJobStatus(jobId, 'RUNNING');
-
-    // Here you would call the AI video generation API
-    // For MVP, this is a placeholder
-    // const result = await generateVideo(inputPayload);
-
-    // Simulate processing
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
-    // Update job with results
-    // await updateJobStatus(jobId, 'SUCCEEDED', result);
-
-    return { success: true, jobId };
-  } catch (error) {
-    console.error('Job failed:', error);
-    // await updateJobStatus(jobId, 'FAILED', null, error.message);
-    throw error;
-  }
-});
+// Note: Job processor is defined in workers/videoGenerationWorker.ts
+// to avoid duplicate handler errors
 
 videoGenerationQueue.on('completed', (job, result) => {
   console.log(`Job ${job.id} completed with result:`, result);

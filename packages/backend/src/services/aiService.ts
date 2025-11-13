@@ -73,7 +73,8 @@ export const aiService = {
         n: 1,
       });
 
-      const imageUrl = imageResponse.data[0].url;
+      const imageUrl = imageResponse.data?.[0]?.url;
+      if (!imageUrl) throw new Error('Failed to generate image');
 
       // Then convert image to video using Stable Video Diffusion
       return await this.generateVideoFromImage({

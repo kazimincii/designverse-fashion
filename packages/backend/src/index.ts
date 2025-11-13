@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
 import { connectDatabase, prisma } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import rateLimit from 'express-rate-limit';
@@ -44,6 +45,10 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api/', limiter);
+
+// Static file serving for uploads
+const LOCAL_STORAGE_PATH = process.env.LOCAL_STORAGE_PATH || '/tmp/uploads';
+app.use('/uploads', express.static(LOCAL_STORAGE_PATH));
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {

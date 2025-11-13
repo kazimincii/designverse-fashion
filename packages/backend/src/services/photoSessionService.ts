@@ -100,8 +100,8 @@ export const photoSessionService = {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const productAsset = session.photoAssets.find((a) => a.id === productAssetId);
-    const modelAsset = session.photoAssets.find((a) => a.id === modelAssetId);
+    const productAsset = session.photoAssets.find((a: any) => a.id === productAssetId);
+    const modelAsset = session.photoAssets.find((a: any) => a.id === modelAssetId);
 
     if (!productAsset || !modelAsset) {
       throw new Error('Product or model asset not found');
@@ -152,7 +152,7 @@ export const photoSessionService = {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const baseAsset = session.photoAssets.find((a) => a.id === baseAssetId);
+    const baseAsset = session.photoAssets.find((a: any) => a.id === baseAssetId);
     if (!baseAsset) throw new Error('Base asset not found');
 
     const job = await prisma.job.create({
@@ -195,7 +195,7 @@ export const photoSessionService = {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const asset = session.photoAssets.find((a) => a.id === assetId);
+    const asset = session.photoAssets.find((a: any) => a.id === assetId);
     if (!asset) throw new Error('Asset not found');
 
     const job = await prisma.job.create({

@@ -99,7 +99,7 @@ videoGenerationQueue.process(async (job) => {
       const clips = await prisma.clip.findMany({
         where: { storyId: inputPayload.storyId },
       });
-      const totalDuration = clips.reduce((sum, c) => sum + c.durationSeconds, 0);
+      const totalDuration = clips.reduce((sum: number, c: any) => sum + c.durationSeconds, 0);
 
       await prisma.story.update({
         where: { id: inputPayload.storyId },
