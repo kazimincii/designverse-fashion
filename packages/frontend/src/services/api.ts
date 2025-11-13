@@ -105,8 +105,19 @@ export const photoSessionApi = {
       },
     });
   },
-  applyVirtualTryOn: (sessionId: string, data: { productAssetId: string; modelAssetId: string }) =>
-    api.post(`/photo/sessions/${sessionId}/try-on`, data),
+  applyVirtualTryOn: (
+    sessionId: string,
+    data: {
+      productAssetId: string;
+      modelAssetId: string;
+      characterRefId?: string;
+      garmentRefId?: string;
+      styleRefId?: string;
+      style?: string;
+      lighting?: string;
+      mood?: string;
+    }
+  ) => api.post(`/photo/sessions/${sessionId}/try-on`, data),
   generateVariations: (sessionId: string, data: { baseAssetId: string; mood?: string; framing?: string; count?: number }) =>
     api.post(`/photo/sessions/${sessionId}/variations`, data),
   upscaleImage: (sessionId: string, data: { assetId: string; factor?: number }) =>

@@ -1,6 +1,9 @@
 import { prisma } from '../config/database';
 import { storageService } from './storageService';
 import { addVideoGenerationJob } from './jobQueue';
+import { ConsistencyPromptBuilder } from './consistencyPromptBuilder';
+import { AIConsistencyEngine } from './aiConsistencyEngine';
+import { referenceService } from './referenceService';
 
 export interface CreatePhotoSessionData {
   title: string;
@@ -95,8 +98,22 @@ export const photoSessionService = {
     return photoAsset;
   },
 
-  // Virtual try-on: Apply product to model
-  async applyVirtualTryOn(sessionId: string, productAssetId: string, modelAssetId: string) {
+  // Virtual try-on: Apply product to model (with optional references)
+  async applyVirtualTryOn(
+    sessionId: string,
+    productAssetId: string,
+    modelAssetId: string,
+    options?: {
+      characterRefId?: string;
+      garmentRefId?: string;
+      styleRefId?: string;
+      additionalParams?: {
+        style?: string;
+        lighting?: string;
+        mood?: string;
+      };
+    }
+  ) {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
@@ -107,7 +124,32 @@ export const photoSessionService = {
       throw new Error('Product or model asset not found');
     }
 
-    // Create job
+    // Load references if provided
+    let characterRef = null;
+    let garmentRef = null;
+    let styleRef = null;
+
+    if (options?.characterRefId) {
+      characterRef = await referenceService.getCharacterReference(options.characterRefId);
+    }
+    if (options?.garmentRefId) {
+      garmentRef = await referenceService.getGarmentReference(options.garmentRefId);
+    }
+    if (options?.styleRefId) {
+      styleRef = await referenceService.getStyleReference(options.styleRefId);
+    }
+
+    // Build consistency-aware prompt
+    const basePrompt = 'fashion model wearing product, professional photography, studio lighting';
+    const promptResult = ConsistencyPromptBuilder.buildPrompt({
+      basePrompt,
+      characterRef,
+      garmentRef,
+      styleRef,
+      additionalParams: options?.additionalParams,
+    });
+
+    // Create job with enhanced prompt and references
     const job = await prisma.job.create({
       data: {
         ownerId: session.ownerId,
@@ -117,6 +159,12 @@ export const photoSessionService = {
           sessionId,
           productUrl: productAsset.url,
           modelUrl: modelAsset.url,
+          enhancedPrompt: promptResult.enhancedPrompt,
+          negativePrompt: promptResult.negativePrompt,
+          characterRefId: options?.characterRefId,
+          garmentRefId: options?.garmentRefId,
+          styleRefId: options?.styleRefId,
+          consistencyTags: promptResult.consistencyTags,
         },
         modelProvider: 'replicate',
       },
@@ -131,8 +179,31 @@ export const photoSessionService = {
         sessionId,
         productUrl: productAsset.url,
         modelUrl: modelAsset.url,
+        enhancedPrompt: promptResult.enhancedPrompt,
+        negativePrompt: promptResult.negativePrompt,
+        characterRefId: options?.characterRefId,
+        garmentRefId: options?.garmentRefId,
+        styleRefId: options?.styleRefId,
       },
     });
+
+    // Create generation history entry
+    if (characterRef || garmentRef || styleRef) {
+      await referenceService.createGenerationHistory({
+        sessionId,
+        generatedAssetId: job.id, // Will be updated when job completes
+        jobId: job.id,
+        characterRefId: options?.characterRefId,
+        garmentRefId: options?.garmentRefId,
+        styleRefId: options?.styleRefId,
+        stepNumber: 2, // Enhance step
+        basePrompt,
+        enhancedPrompt: promptResult.enhancedPrompt,
+        negativePrompt: promptResult.negativePrompt,
+        modelProvider: 'replicate',
+        modelName: 'virtual-tryon',
+      });
+    }
 
     // Update session status
     await prisma.photoSession.update({

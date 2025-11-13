@@ -45,10 +45,19 @@ export default function EnhanceStep() {
       const response = await photoSessionApi.applyVirtualTryOn(sessionId, {
         productAssetId,
         modelAssetId,
+        characterRefId: selectedCharacterRef,
+        garmentRefId: selectedGarmentRef,
+        style: selectedStyle,
+        lighting: selectedLighting,
       });
 
       const job = response.data.data.job;
-      toast.success('Virtual try-on job started! This may take a few minutes...');
+
+      if (job.consistencyEnhanced) {
+        toast.success('Virtual try-on job started with AI consistency! This may take a few minutes...');
+      } else {
+        toast.success('Virtual try-on job started! This may take a few minutes...');
+      }
 
       // Store job info
       setGeneratedResults([job]);

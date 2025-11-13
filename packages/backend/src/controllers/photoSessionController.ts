@@ -100,7 +100,16 @@ export const uploadPhoto = async (req: AuthRequest, res: Response) => {
 export const applyVirtualTryOn = async (req: AuthRequest, res: Response) => {
   try {
     const { sessionId } = req.params;
-    const { productAssetId, modelAssetId } = req.body;
+    const {
+      productAssetId,
+      modelAssetId,
+      characterRefId,
+      garmentRefId,
+      styleRefId,
+      style,
+      lighting,
+      mood,
+    } = req.body;
     const userId = req.user!.userId;
 
     const session = await photoSessionService.getSession(sessionId);
@@ -121,7 +130,17 @@ export const applyVirtualTryOn = async (req: AuthRequest, res: Response) => {
     const job = await photoSessionService.applyVirtualTryOn(
       sessionId,
       productAssetId,
-      modelAssetId
+      modelAssetId,
+      {
+        characterRefId,
+        garmentRefId,
+        styleRefId,
+        additionalParams: {
+          style,
+          lighting,
+          mood,
+        },
+      }
     );
 
     res.status(202).json({
@@ -131,6 +150,7 @@ export const applyVirtualTryOn = async (req: AuthRequest, res: Response) => {
           id: job.id,
           status: job.status,
           message: 'Virtual try-on started. This may take 1-2 minutes.',
+          consistencyEnhanced: !!(characterRefId || garmentRefId || styleRefId),
         },
       },
     });
