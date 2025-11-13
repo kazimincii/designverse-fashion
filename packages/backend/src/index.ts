@@ -17,6 +17,7 @@ import aiRoutes from './routes/aiRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import templateRoutes from './routes/templateRoutes';
 import photoSessionRoutes from './routes/photoSessionRoutes';
+import referenceRoutes from './routes/referenceRoutes';
 
 // Import worker (starts processing queue)
 import './workers/videoGenerationWorker';
@@ -64,6 +65,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', templateRoutes);
 app.use('/api/photo', photoSessionRoutes);
+app.use('/api/references', referenceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
