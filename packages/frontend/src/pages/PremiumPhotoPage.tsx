@@ -210,14 +210,13 @@ export default function PremiumPhotoPage() {
 
     setIsGeneratingVariations(true);
     try {
-      const response = await photoSessionApi.generateVariations(sessionId, {
+      await photoSessionApi.generateVariations(sessionId, {
         baseAssetId,
         mood: selectedMood,
         framing: selectedFraming,
         count: variationCount,
       });
 
-      const job = response.data.data.job;
       toast.success(`Generating ${variationCount} variations! This may take a few minutes...`);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to start generation');
@@ -240,13 +239,11 @@ export default function PremiumPhotoPage() {
 
     setIsUpscaling(true);
     try {
-      const response = await photoSessionApi.upscaleImage(sessionId, {
+      await photoSessionApi.upscaleImage(sessionId, {
         assetId,
         factor: upscaleFactor,
       });
 
-      const job = response.data.data.job;
-      const credits = upscaleFactor === 2 ? 5 : upscaleFactor === 3 ? 10 : 15;
       toast.success(`Upscaling to ${upscaleFactor}x! This may take a few minutes...`);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to start upscaling');
@@ -269,13 +266,12 @@ export default function PremiumPhotoPage() {
 
     setIsCreatingAnimation(true);
     try {
-      const response = await photoSessionApi.createAnimation(sessionId, {
+      await photoSessionApi.createAnimation(sessionId, {
         assetIds,
         duration: animationDuration,
         style: animationStyle,
       });
 
-      const job = response.data.data.job;
       toast.success('Creating cinematic animation! This may take a few minutes...');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to start animation');
