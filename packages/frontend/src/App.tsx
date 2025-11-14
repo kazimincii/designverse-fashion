@@ -25,6 +25,9 @@ import AnimateStep from './pages/premium-photo/AnimateStep';
 import ReferenceManagementPage from './pages/ReferenceManagementPage';
 import CreateReferencePage from './pages/CreateReferencePage';
 
+// Quality Analytics
+import SessionAnalytics from './pages/SessionAnalytics';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -99,6 +102,9 @@ function App() {
             {/* Reference Management */}
             <Route path="/references/manage" element={<ProtectedRoute><PhotoSessionProvider><ReferenceManagementPage /></PhotoSessionProvider></ProtectedRoute>} />
             <Route path="/references/create" element={<ProtectedRoute><PhotoSessionProvider><CreateReferencePage /></PhotoSessionProvider></ProtectedRoute>} />
+
+            {/* Quality Analytics */}
+            <Route path="/analytics/:sessionId" element={<ProtectedRoute><SessionAnalytics /></ProtectedRoute>} />
           </Routes>
         </Router>
         <Toaster position="top-right" />

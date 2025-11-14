@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, ArrowLeft } from 'lucide-react';
+import { Play, ArrowLeft, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { photoSessionApi } from '../../services/api';
 import { usePhotoSession } from '../../contexts/PhotoSessionContext';
@@ -149,12 +149,23 @@ export default function AnimateStep() {
           <span>Geri</span>
         </button>
 
-        <button
-          onClick={() => navigate('/workspace')}
-          className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg"
-        >
-          <span>Tamamla</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          {sessionId && (
+            <button
+              onClick={() => navigate(`/analytics/${sessionId}`)}
+              className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg"
+            >
+              <TrendingUp className="w-5 h-5" />
+              <span>Kalite Analizi</span>
+            </button>
+          )}
+          <button
+            onClick={() => navigate('/workspace')}
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg"
+          >
+            <span>Tamamla</span>
+          </button>
+        </div>
       </div>
     </PremiumPhotoLayout>
   );

@@ -255,3 +255,34 @@ export const referenceApi = {
   updateGenerationFeedback: (historyId: string, data: UpdateGenerationFeedbackRequest) =>
     api.put(`/references/history/${historyId}/feedback`, data),
 };
+
+// Quality Metrics & Analytics API
+export const qualityApi = {
+  // Get quality metrics for a session
+  getSessionMetrics: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/metrics`),
+
+  // Get comprehensive quality report
+  getSessionReport: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/report`),
+
+  // Get generation analysis
+  getGenerationAnalysis: (sessionId: string, referenceType?: 'character' | 'garment' | 'style') =>
+    api.get(`/quality/sessions/${sessionId}/analysis`, {
+      params: referenceType ? { referenceType } : {},
+    }),
+
+  // Get generation history
+  getGenerationHistory: (sessionId: string, limit = 50) =>
+    api.get(`/quality/sessions/${sessionId}/history`, {
+      params: { limit },
+    }),
+
+  // Submit feedback for a generation
+  submitFeedback: (historyId: string, data: { rating: number; feedback?: string; issues?: string[] }) =>
+    api.post(`/quality/history/${historyId}/feedback`, data),
+
+  // Get global analytics (admin)
+  getGlobalAnalytics: (params?: { startDate?: string; endDate?: string; minGenerations?: number }) =>
+    api.get('/quality/analytics/global', { params }),
+};
