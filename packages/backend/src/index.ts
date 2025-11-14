@@ -18,9 +18,12 @@ import uploadRoutes from './routes/uploadRoutes';
 import templateRoutes from './routes/templateRoutes';
 import photoSessionRoutes from './routes/photoSessionRoutes';
 import referenceRoutes from './routes/referenceRoutes';
+import qualityRoutes from './routes/qualityRoutes';
+import webhookRoutes from './routes/webhookRoutes';
 
-// Import worker (starts processing queue)
+// Import workers (starts processing queues)
 import './workers/videoGenerationWorker';
+import './workers/photoSessionWorker';
 
 // Load environment variables
 dotenv.config();
@@ -66,6 +69,8 @@ app.use('/api', uploadRoutes);
 app.use('/api', templateRoutes);
 app.use('/api/photo', photoSessionRoutes);
 app.use('/api/references', referenceRoutes);
+app.use('/api/quality', qualityRoutes);
+app.use('/webhooks', webhookRoutes); // No /api prefix for webhooks
 
 // 404 handler
 app.use((req: Request, res: Response) => {

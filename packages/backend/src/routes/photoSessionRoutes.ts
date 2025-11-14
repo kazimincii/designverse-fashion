@@ -14,6 +14,11 @@ import {
 import { authenticate } from '../middleware/auth';
 import { uploadMiddleware } from '../controllers/uploadController';
 import { validate } from '../middleware/validation';
+import {
+  aiGenerationLimiter,
+  uploadLimiter,
+  readLimiter,
+} from '../middleware/advancedRateLimit';
 
 const router = Router();
 
@@ -25,22 +30,24 @@ router.post(
   createPhotoSession
 );
 
-router.get('/sessions', authenticate, getUserPhotoSessions);
-router.get('/sessions/:id', authenticate, getPhotoSession);
+router.get('/sessions', authenticate, readLimiter, getUserPhotoSessions);
+router.get('/sessions/:id', authenticate, readLimiter, getPhotoSession);
 router.delete('/sessions/:id', authenticate, deletePhotoSession);
 
 // Step 1: Upload
 router.post(
   '/sessions/:sessionId/upload',
   authenticate,
+  uploadLimiter,
   uploadMiddleware,
   uploadPhoto
 );
 
-// Step 2: Virtual try-on
+// Step 2: Virtual try-on (AI generation - strict limit)
 router.post(
   '/sessions/:sessionId/try-on',
   authenticate,
+  aiGenerationLimiter,
   [
     body('productAssetId').notEmpty(),
     body('modelAssetId').notEmpty(),
@@ -49,10 +56,11 @@ router.post(
   applyVirtualTryOn
 );
 
-// Step 3: Generate variations
+// Step 3: Generate variations (AI generation - strict limit)
 router.post(
   '/sessions/:sessionId/variations',
   authenticate,
+  aiGenerationLimiter,
   [
     body('baseAssetId').notEmpty(),
     body('mood').optional().isIn(['minimalist', 'dynamic', 'dramatic']),
