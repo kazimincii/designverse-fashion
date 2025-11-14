@@ -361,3 +361,27 @@ export const templateApi = {
   delete: (id: string) => api.delete(`/templates/${id}`),
   use: (id: string) => api.post(`/templates/${id}/use`),
 };
+
+// Search API
+export const searchApi = {
+  globalSearch: (params: {
+    query: string;
+    type?: 'story' | 'template' | 'session';
+    limit?: number;
+  }) => api.get('/search/global', { params }),
+  advancedStoryFilter: (params: {
+    category?: string;
+    tags?: string;
+    minViews?: number;
+    maxViews?: number;
+    minLikes?: number;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: 'createdAt' | 'viewCount' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
+    limit?: number;
+    offset?: number;
+  }) => api.get('/search/stories/filter', { params }),
+  getSuggestions: (query: string) =>
+    api.get('/search/suggestions', { params: { query } }),
+};

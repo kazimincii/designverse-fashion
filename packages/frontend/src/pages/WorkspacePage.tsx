@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { Story } from '../types';
 import NotificationIndicator from '../components/NotificationIndicator';
+import SearchBar from '../components/SearchBar';
 
 export default function WorkspacePage() {
   const { user, logout } = useAuth();
@@ -46,15 +47,20 @@ export default function WorkspacePage() {
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          <div className="flex justify-between items-center h-16 space-x-6">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent whitespace-nowrap">
               Nim
             </h1>
+
+            <div className="flex-1 max-w-xl">
+              <SearchBar />
+            </div>
+
             <nav className="flex items-center space-x-6">
-              <Link to="/feed" className="text-gray-300 hover:text-white">
+              <Link to="/feed" className="text-gray-300 hover:text-white whitespace-nowrap">
                 Feed
               </Link>
-              <Link to={`/profile/${user?.handle}`} className="text-gray-300 hover:text-white">
+              <Link to={`/profile/${user?.handle}`} className="text-gray-300 hover:text-white whitespace-nowrap">
                 Profile
               </Link>
               <div className="flex items-center space-x-3">
@@ -66,12 +72,12 @@ export default function WorkspacePage() {
                 >
                   <Settings className="w-5 h-5" />
                 </Link>
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-400 whitespace-nowrap">
                   {user?.creditsBalance} credits
                 </span>
                 <button
                   onClick={logout}
-                  className="text-sm text-gray-400 hover:text-white"
+                  className="text-sm text-gray-400 hover:text-white whitespace-nowrap"
                 >
                   Logout
                 </button>
