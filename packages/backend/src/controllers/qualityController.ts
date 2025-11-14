@@ -460,3 +460,226 @@ export const exportGenerationHistoryCSV = async (req: AuthRequest, res: Response
     throw error;
   }
 };
+
+/**
+ * Batch regenerate low quality generations
+ */
+export const batchRegenerate = async (req: AuthRequest, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const { threshold = 70, maxRegenerations = 10 } = req.body;
+    const userId = req.user!.userId;
+
+    const { photoSessionService } = await import('../services/photoSessionService');
+    const session = await photoSessionService.getSession(sessionId);
+
+    if (!session || session.ownerId !== userId) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    // Find generations below threshold that haven't been regenerated
+    const lowQualityGenerations = await prisma.generationHistory.findMany({
+      where: {
+        sessionId,
+        consistencyScore: {
+          lt: threshold,
+          not: null,
+        },
+        wasRegenerated: false,
+      },
+      orderBy: {
+        consistencyScore: 'asc',
+      },
+      take: maxRegenerations,
+      include: {
+        characterRef: true,
+        garmentRef: true,
+        styleRef: true,
+      },
+    });
+
+    if (lowQualityGenerations.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No low quality generations found',
+        data: { count: 0, queued: [] },
+      });
+    }
+
+    // Queue regeneration jobs
+    const queuedJobs: any[] = [];
+    const { addPhotoGenerationJob } = await import('../services/jobQueue');
+
+    for (const history of lowQualityGenerations) {
+      const job = await addPhotoGenerationJob({
+        sessionId,
+        prompt: history.basePrompt,
+        characterRefId: history.characterRefId || undefined,
+        garmentRefId: history.garmentRefId || undefined,
+        styleRefId: history.styleRefId || undefined,
+        ownerId: userId,
+        isRegeneration: true,
+        originalHistoryId: history.id,
+      });
+
+      queuedJobs.push({
+        jobId: job.id,
+        historyId: history.id,
+        currentScore: history.consistencyScore,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Queued ${queuedJobs.length} generations for improvement`,
+      data: {
+        count: queuedJobs.length,
+        threshold,
+        queued: queuedJobs,
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get/Set custom quality thresholds for a session
+ */
+export const getQualityThresholds = async (req: AuthRequest, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user!.userId;
+
+    const { photoSessionService } = await import('../services/photoSessionService');
+    const session = await photoSessionService.getSession(sessionId);
+
+    if (!session || session.ownerId !== userId) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    // Get thresholds from session metadata or return defaults
+    const metadata = session.metadataJson as any || {};
+    const thresholds = metadata.qualityThresholds || {
+      minConsistencyScore: 70,
+      minFaceScore: 70,
+      minGarmentScore: 70,
+      minStyleScore: 70,
+      autoRegenerate: true,
+      maxRegenerationAttempts: 3,
+    };
+
+    res.json({
+      success: true,
+      data: { thresholds },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const setQualityThresholds = async (req: AuthRequest, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user!.userId;
+    const thresholds = req.body;
+
+    const { photoSessionService } = await import('../services/photoSessionService');
+    const session = await photoSessionService.getSession(sessionId);
+
+    if (!session || session.ownerId !== userId) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    // Update session metadata with thresholds
+    const metadata = (session.metadataJson as any) || {};
+    metadata.qualityThresholds = {
+      ...metadata.qualityThresholds,
+      ...thresholds,
+    };
+
+    await prisma.photoSession.update({
+      where: { id: sessionId },
+      data: { metadataJson: metadata },
+    });
+
+    res.json({
+      success: true,
+      message: 'Quality thresholds updated',
+      data: { thresholds: metadata.qualityThresholds },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get user notification preferences
+ */
+export const getNotificationPreferences = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Get preferences from user metadata or return defaults
+    const metadata = user.metadataJson as any || {};
+    const preferences = metadata.notificationPreferences || {
+      emailNotifications: true,
+      pushNotifications: true,
+      generationComplete: true,
+      generationFailed: true,
+      qualityAlerts: true,
+      weeklyDigest: false,
+      muteAll: false,
+    };
+
+    res.json({
+      success: true,
+      data: { preferences },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const setNotificationPreferences = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const preferences = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Update user metadata with preferences
+    const metadata = (user.metadataJson as any) || {};
+    metadata.notificationPreferences = {
+      ...metadata.notificationPreferences,
+      ...preferences,
+    };
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { metadataJson: metadata },
+    });
+
+    res.json({
+      success: true,
+      message: 'Notification preferences updated',
+      data: { preferences: metadata.notificationPreferences },
+    });
+  } catch (error) {
+    throw error;
+  }
+};

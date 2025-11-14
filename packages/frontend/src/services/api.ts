@@ -51,6 +51,10 @@ export const authApi = {
   login: (data: { email: string; password: string }) =>
     api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
+  updateProfile: (data: { displayName?: string; bio?: string; avatarUrl?: string; handle?: string }) =>
+    api.patch('/auth/profile', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.post('/auth/change-password', data),
 };
 
 // Story API
@@ -312,4 +316,20 @@ export const qualityApi = {
 
   // Get performance stats
   getPerformanceStats: () => api.get('/performance/stats'),
+
+  // Batch regenerate low quality generations
+  batchRegenerate: (sessionId: string, params?: { threshold?: number; maxRegenerations?: number }) =>
+    api.post(`/quality/sessions/${sessionId}/batch-regenerate`, params),
+
+  // Quality thresholds
+  getQualityThresholds: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/thresholds`),
+  setQualityThresholds: (sessionId: string, thresholds: any) =>
+    api.put(`/quality/sessions/${sessionId}/thresholds`, thresholds),
+
+  // Notification preferences
+  getNotificationPreferences: () =>
+    api.get('/quality/preferences/notifications'),
+  setNotificationPreferences: (preferences: any) =>
+    api.put('/quality/preferences/notifications', preferences),
 };

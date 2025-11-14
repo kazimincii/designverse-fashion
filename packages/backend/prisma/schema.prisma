@@ -75,6 +75,7 @@ model User {
   avatarUrl      String?
   planType       PlanType @default(FREE)
   creditsBalance Int      @default(100)
+  metadataJson   Json?    // For storing preferences, settings, etc.
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -353,10 +354,11 @@ enum AnimationStyle {
 }
 
 model PhotoSession {
-  id      String             @id @default(cuid())
-  ownerId String
-  title   String
-  status  PhotoSessionStatus @default(DRAFT)
+  id           String             @id @default(cuid())
+  ownerId      String
+  title        String
+  status       PhotoSessionStatus @default(DRAFT)
+  metadataJson Json?              // For storing quality thresholds, preferences, etc.
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
