@@ -6,6 +6,7 @@ import { storyApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { Story } from '../types';
+import NotificationIndicator from '../components/NotificationIndicator';
 
 export default function WorkspacePage() {
   const { user, logout } = useAuth();
@@ -57,6 +58,7 @@ export default function WorkspacePage() {
                 Profile
               </Link>
               <div className="flex items-center space-x-3">
+                <NotificationIndicator />
                 <span className="text-sm text-gray-400">
                   {user?.creditsBalance} credits
                 </span>

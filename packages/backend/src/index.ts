@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -7,6 +8,7 @@ import path from 'path';
 import { connectDatabase, prisma } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import rateLimit from 'express-rate-limit';
+import { notificationService } from './services/notificationService';
 
 // Import routes
 import authRoutes from './routes/authRoutes';
@@ -83,6 +85,12 @@ app.use((req: Request, res: Response) => {
 // Error handler (must be last)
 app.use(errorHandler);
 
+// Create HTTP server for both Express and Socket.IO
+const httpServer = http.createServer(app);
+
+// Initialize WebSocket server
+notificationService.initialize(httpServer);
+
 // Start server
 const startServer = async () => {
   try {
@@ -91,10 +99,11 @@ const startServer = async () => {
     // Make prisma available in controllers
     app.locals.prisma = prisma;
 
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🌐 API available at http://localhost:${PORT}/api`);
+      console.log(`🔌 WebSocket available at ws://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

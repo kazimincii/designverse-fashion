@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { AIConsistencyEngine } from '../services/aiConsistencyEngine';
 import { referenceService } from '../services/referenceService';
 import { storageService } from '../services/storageService';
+import { notificationService } from '../services/notificationService';
 import axios from 'axios';
 
 /**
@@ -218,6 +219,29 @@ async function handleSuccessfulPrediction(
       },
     });
 
+    // Send real-time notification via WebSocket
+    notificationService.notifyGenerationComplete(job.ownerId, {
+      sessionId,
+      assetId: photoAsset.id,
+      consistencyScore: consistencyScore?.overall,
+      thumbnailUrl: storageUrl,
+    });
+
+    // Send quality alert if score is low
+    if (consistencyScore && consistencyScore.overall < 80) {
+      const issues: string[] = [];
+      if (consistencyScore.faceScore && consistencyScore.faceScore < 70) issues.push('Low face consistency');
+      if (consistencyScore.garmentScore && consistencyScore.garmentScore < 70) issues.push('Low garment accuracy');
+      if (consistencyScore.styleScore && consistencyScore.styleScore < 70) issues.push('Low style matching');
+
+      notificationService.notifyQualityAlert(job.ownerId, {
+        sessionId,
+        assetId: photoAsset.id,
+        score: consistencyScore.overall,
+        issues,
+      });
+    }
+
     console.log('Job completed successfully via webhook:', jobId);
   } catch (error) {
     console.error('Error handling successful prediction:', error);
@@ -230,6 +254,14 @@ async function handleSuccessfulPrediction(
  */
 async function handleFailedPrediction(jobId: string, error: any) {
   try {
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      select: {
+        inputPayloadJson: true,
+        ownerId: true,
+      },
+    });
+
     await prisma.job.update({
       where: { id: jobId },
       data: {
@@ -237,6 +269,15 @@ async function handleFailedPrediction(jobId: string, error: any) {
         errorMessage: typeof error === 'string' ? error : JSON.stringify(error),
       },
     });
+
+    // Send real-time notification via WebSocket
+    if (job) {
+      const inputPayload = job.inputPayloadJson as any;
+      notificationService.notifyGenerationFailed(job.ownerId, {
+        sessionId: inputPayload.sessionId,
+        error: typeof error === 'string' ? error : 'Generation failed',
+      });
+    }
 
     console.log('Job marked as failed via webhook:', jobId);
   } catch (err) {

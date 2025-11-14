@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PhotoSessionProvider } from './contexts/PhotoSessionContext';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -78,8 +79,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <Routes>
+        <WebSocketProvider>
+          <Router>
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
@@ -107,9 +109,10 @@ function App() {
             {/* Quality Analytics */}
             <Route path="/analytics/:sessionId" element={<ProtectedRoute><SessionAnalytics /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><GlobalAnalytics /></ProtectedRoute>} />
-          </Routes>
-        </Router>
-        <Toaster position="top-right" />
+            </Routes>
+          </Router>
+          <Toaster position="top-right" />
+        </WebSocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
