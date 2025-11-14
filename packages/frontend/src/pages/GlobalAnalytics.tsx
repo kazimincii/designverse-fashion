@@ -9,7 +9,9 @@ import {
   AlertCircle,
   BarChart3,
   RefreshCw,
+  BarChart2,
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { qualityApi } from '../services/api';
 import type { GlobalAnalytics } from '../types/quality';
 import QualityChart from '../components/QualityChart';
@@ -347,6 +349,108 @@ export default function GlobalAnalyticsPage() {
         {/* Quality Trend Chart */}
         {analytics.timeSeriesData.length > 0 && (
           <QualityChart data={analytics.timeSeriesData} />
+        )}
+
+        {/* Model Performance Comparison */}
+        {analytics.topPerformingModels.length > 0 && (
+          <div className="bg-gray-900 rounded-lg p-6 mb-8">
+            <h3 className="text-xl font-bold mb-4 flex items-center space-x-2">
+              <BarChart2 className="w-5 h-5 text-cyan-500" />
+              <span>Model Performance Comparison</span>
+            </h3>
+            <p className="text-sm text-gray-400 mb-6">
+              Compare average quality scores and usage across different AI models
+            </p>
+
+            {/* Comparison Chart */}
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={analytics.topPerformingModels.map((m) => ({
+                  model: m.model,
+                  avgScore: m.averageScore,
+                  usage: m.usageCount,
+                }))}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis
+                  dataKey="model"
+                  stroke="#9CA3AF"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1F2937',
+                    border: '1px solid #374151',
+                    borderRadius: '0.5rem',
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="avgScore" fill="#8B5CF6" name="Avg Quality Score" />
+                <Bar dataKey="usage" fill="#10B981" name="Usage Count" />
+              </BarChart>
+            </ResponsiveContainer>
+
+            {/* Detailed Stats Table */}
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="text-left py-2">Model</th>
+                    <th className="text-right py-2">Avg Score</th>
+                    <th className="text-right py-2">Total Uses</th>
+                    <th className="text-right py-2">Performance Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.topPerformingModels.map((model, idx) => (
+                    <tr key={idx} className="border-b border-gray-800/50">
+                      <td className="py-3 font-medium">{model.model}</td>
+                      <td className="text-right">
+                        <span
+                          className={`font-bold ${
+                            model.averageScore >= 90
+                              ? 'text-green-500'
+                              : model.averageScore >= 80
+                              ? 'text-blue-500'
+                              : model.averageScore >= 70
+                              ? 'text-yellow-500'
+                              : 'text-red-500'
+                          }`}
+                        >
+                          {model.averageScore.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="text-right text-cyan-500">{model.usageCount}</td>
+                      <td className="text-right">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            model.averageScore >= 90
+                              ? 'bg-green-500/20 text-green-400'
+                              : model.averageScore >= 80
+                              ? 'bg-blue-500/20 text-blue-400'
+                              : model.averageScore >= 70
+                              ? 'bg-yellow-500/20 text-yellow-400'
+                              : 'bg-red-500/20 text-red-400'
+                          }`}
+                        >
+                          {model.averageScore >= 90
+                            ? 'Excellent'
+                            : model.averageScore >= 80
+                            ? 'Good'
+                            : model.averageScore >= 70
+                            ? 'Fair'
+                            : 'Poor'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
 
         {/* Regeneration Stats */}
