@@ -33,6 +33,9 @@ import GlobalAnalytics from './pages/GlobalAnalytics';
 // Settings
 import SettingsPage from './pages/SettingsPage';
 
+// Templates
+import TemplatesPage from './pages/TemplatesPage';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -115,6 +118,9 @@ function App() {
 
             {/* Settings */}
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+
+            {/* Templates */}
+            <Route path="/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
             </Routes>
           </Router>
           <Toaster position="top-right" />

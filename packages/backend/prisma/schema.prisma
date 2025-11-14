@@ -81,16 +81,17 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  stories       Story[]
-  folders       Folder[]
-  assets        Asset[]
-  jobs          Job[]
-  likes         Like[]
-  comments      Comment[]
-  followers     Follow[]       @relation("Followers")
-  following     Follow[]       @relation("Following")
-  notifications Notification[]
-  photoSessions PhotoSession[]
+  stories          Story[]
+  folders          Folder[]
+  assets           Asset[]
+  jobs             Job[]
+  likes            Like[]
+  comments         Comment[]
+  followers        Follow[]            @relation("Followers")
+  following        Follow[]            @relation("Following")
+  notifications    Notification[]
+  photoSessions    PhotoSession[]
+  sessionTemplates SessionTemplate[]
 
   @@index([email])
   @@index([handle])
@@ -622,6 +623,35 @@ model ReferencePreset {
   updatedAt DateTime @updatedAt
 
   @@index([creatorId])
+  @@index([category])
+  @@index([isPublic])
+  @@index([usageCount])
+}
+
+// Session Templates - Save frequently used session configurations
+model SessionTemplate {
+  id           String  @id @default(cuid())
+  ownerId      String
+  name         String
+  description  String?
+  category     String? // "product-photo", "fashion-editorial", "lookbook", etc.
+  thumbnailUrl String?
+
+  // Template Configuration
+  templateData Json // Contains default settings, references, quality thresholds
+
+  // Template Metadata
+  isPublic     Boolean @default(false) // Share with other users
+  usageCount   Int     @default(0)     // Track how many times used
+  tags         String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
   @@index([category])
   @@index([isPublic])
   @@index([usageCount])

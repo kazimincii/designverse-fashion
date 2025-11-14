@@ -341,3 +341,23 @@ export const qualityApi = {
   getFavorites: (sessionId: string) =>
     api.get(`/quality/sessions/${sessionId}/favorites`),
 };
+
+// Session Templates API
+export const templateApi = {
+  create: (data: {
+    name: string;
+    description?: string;
+    category?: string;
+    thumbnailUrl?: string;
+    templateData: any;
+    isPublic?: boolean;
+    tags?: string[];
+  }) => api.post('/templates', data),
+  getMyTemplates: () => api.get('/templates/my-templates'),
+  getPublicTemplates: (params?: { category?: string; limit?: number }) =>
+    api.get('/templates/public', { params }),
+  getById: (id: string) => api.get(`/templates/${id}`),
+  update: (id: string, data: any) => api.patch(`/templates/${id}`, data),
+  delete: (id: string) => api.delete(`/templates/${id}`),
+  use: (id: string) => api.post(`/templates/${id}/use`),
+};

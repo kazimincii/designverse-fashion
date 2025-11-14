@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Upload, Sparkles, Image as ImageIcon, Maximize2, Play, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft, ArrowRight, Upload, Sparkles, Image as ImageIcon, Maximize2, Play, X, FileText, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { photoSessionApi } from '../services/api';
+import { photoSessionApi, templateApi } from '../services/api';
 
 interface UploadedPhoto {
   id?: string;
@@ -33,8 +34,24 @@ export default function PremiumPhotoPage() {
   const [animationStyle, setAnimationStyle] = useState<'SUBTLE_CINEMATIC' | 'LOOKBOOK' | 'DYNAMIC'>('SUBTLE_CINEMATIC');
   const [animationDuration, setAnimationDuration] = useState(7);
   const [isCreatingAnimation, setIsCreatingAnimation] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const productInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch available templates
+  const { data: templatesData } = useQuery({
+    queryKey: ['session-templates'],
+    queryFn: async () => {
+      const [myTemplates, publicTemplates] = await Promise.all([
+        templateApi.getMyTemplates(),
+        templateApi.getPublicTemplates({ limit: 20 }),
+      ]);
+      return {
+        myTemplates: myTemplates.data.data.templates || [],
+        publicTemplates: publicTemplates.data.data.templates || [],
+      };
+    },
+  });
 
   const steps = [
     {
@@ -68,6 +85,28 @@ export default function PremiumPhotoPage() {
       icon: Play,
     },
   ];
+
+  const applyTemplate = async (templateId: string) => {
+    try {
+      const response = await templateApi.use(templateId);
+      const templateData = response.data.data.templateData;
+
+      // Apply template settings to UI state
+      if (templateData.selectedStyle) setSelectedStyle(templateData.selectedStyle);
+      if (templateData.selectedLighting) setSelectedLighting(templateData.selectedLighting);
+      if (templateData.selectedMood) setSelectedMood(templateData.selectedMood);
+      if (templateData.selectedFraming) setSelectedFraming(templateData.selectedFraming);
+      if (templateData.variationCount) setVariationCount(templateData.variationCount);
+      if (templateData.upscaleFactor) setUpscaleFactor(templateData.upscaleFactor);
+      if (templateData.animationStyle) setAnimationStyle(templateData.animationStyle);
+      if (templateData.animationDuration) setAnimationDuration(templateData.animationDuration);
+
+      toast.success('Template settings applied!');
+      setShowTemplateModal(false);
+    } catch (error: any) {
+      toast.error('Failed to apply template');
+    }
+  };
 
   const createSessionIfNeeded = async () => {
     if (!sessionId) {
@@ -318,8 +357,17 @@ export default function PremiumPhotoPage() {
                 <p className="text-sm text-gray-400">5 Adımda Premium Moda Çekimi</p>
               </div>
             </div>
-            <div className="text-sm text-gray-400">
-              Credits: {user?.creditsBalance || 0}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowTemplateModal(true)}
+                className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                <span className="text-sm">Use Template</span>
+              </button>
+              <div className="text-sm text-gray-400">
+                Credits: {user?.creditsBalance || 0}
+              </div>
             </div>
           </div>
         </div>
@@ -876,6 +924,108 @@ export default function PremiumPhotoPage() {
           </button>
         </div>
       </main>
+
+      {/* Template Selection Modal */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Select Session Template</h2>
+              <button
+                onClick={() => setShowTemplateModal(false)}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* My Templates */}
+              {templatesData?.myTemplates && templatesData.myTemplates.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">My Templates</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {templatesData.myTemplates.map((template: any) => (
+                      <div
+                        key={template.id}
+                        className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors cursor-pointer border-2 border-transparent hover:border-blue-500"
+                        onClick={() => applyTemplate(template.id)}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-semibold text-white">{template.name}</h4>
+                          {template.usageCount > 0 && (
+                            <span className="text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded">
+                              {template.usageCount} uses
+                            </span>
+                          )}
+                        </div>
+                        {template.description && (
+                          <p className="text-sm text-gray-400 mb-2 line-clamp-2">
+                            {template.description}
+                          </p>
+                        )}
+                        {template.category && (
+                          <span className="inline-block text-xs bg-purple-600/20 text-purple-400 px-2 py-1 rounded">
+                            {template.category}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Public Templates */}
+              {templatesData?.publicTemplates && templatesData.publicTemplates.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Popular Templates</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {templatesData.publicTemplates.map((template: any) => (
+                      <div
+                        key={template.id}
+                        className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors cursor-pointer border-2 border-transparent hover:border-blue-500"
+                        onClick={() => applyTemplate(template.id)}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-semibold text-white">{template.name}</h4>
+                          <span className="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded">
+                            Public
+                          </span>
+                        </div>
+                        {template.description && (
+                          <p className="text-sm text-gray-400 mb-2 line-clamp-2">
+                            {template.description}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          {template.category && (
+                            <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded">
+                              {template.category}
+                            </span>
+                          )}
+                          <span className="flex items-center space-x-1">
+                            <Star className="w-3 h-3" />
+                            <span>{template.usageCount} uses</span>
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {(!templatesData?.myTemplates || templatesData.myTemplates.length === 0) &&
+               (!templatesData?.publicTemplates || templatesData.publicTemplates.length === 0) && (
+                <div className="text-center py-12">
+                  <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400">No templates available</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

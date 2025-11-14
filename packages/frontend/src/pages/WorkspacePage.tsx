@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Video, Clock, Eye, Heart, Camera, BarChart3, Settings } from 'lucide-react';
+import { Plus, Video, Clock, Eye, Heart, Camera, BarChart3, Settings, FileText } from 'lucide-react';
 import { storyApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -87,6 +87,13 @@ export default function WorkspacePage() {
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-white">My Stories</h2>
           <div className="flex items-center space-x-4">
+            <Link
+              to="/templates"
+              className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition-all"
+            >
+              <FileText className="w-5 h-5" />
+              <span>Templates</span>
+            </Link>
             <Link
               to="/analytics"
               className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition-all"
