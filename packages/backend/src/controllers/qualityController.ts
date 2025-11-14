@@ -5,6 +5,7 @@ import { referenceService } from '../services/referenceService';
 import { AppError } from '../middleware/errorHandler';
 import { prisma } from '../config/database';
 import { GenerationHistory, PhotoSession } from '@prisma/client';
+import { createObjectCsvStringifier } from 'csv-writer';
 
 /**
  * Get quality metrics for a session
@@ -360,6 +361,48 @@ export const getGlobalQualityAnalytics = async (req: AuthRequest, res: Response)
         },
       },
     });
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Export generation history as CSV
+ */
+export const exportGenerationHistoryCSV = async (req: AuthRequest, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user!.userId;
+
+    const { photoSessionService } = await import('../services/photoSessionService');
+    const session = await photoSessionService.getSession(sessionId);
+
+    if (!session || session.ownerId !== userId) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    const history = await referenceService.getGenerationHistory(sessionId, 1000);
+
+    const csvStringifier = createObjectCsvStringifier({
+      header: [
+        { id: 'id', title: 'ID' },
+        { id: 'createdAt', title: 'Created At' },
+        { id: 'consistencyScore', title: 'Quality Score' },
+        { id: 'faceSimScore', title: 'Face Score' },
+        { id: 'garmentAccScore', title: 'Garment Score' },
+        { id: 'styleMatchScore', title: 'Style Score' },
+        { id: 'modelName', title: 'Model Used' },
+        { id: 'wasRegenerated', title: 'Regenerated' },
+        { id: 'userRating', title: 'User Rating' },
+        { id: 'apiCostUsd', title: 'Cost (USD)' },
+      ],
+    });
+
+    const csvData = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(history);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="generation-history-${sessionId}.csv"`);
+    res.send(csvData);
   } catch (error) {
     throw error;
   }

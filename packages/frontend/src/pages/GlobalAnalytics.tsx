@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { qualityApi } from '../services/api';
 import type { GlobalAnalytics } from '../types/quality';
+import QualityChart from '../components/QualityChart';
 
 export default function GlobalAnalyticsPage() {
   const navigate = useNavigate();
@@ -341,6 +342,11 @@ export default function GlobalAnalyticsPage() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Quality Trend Chart */}
+        {analytics.timeSeriesData.length > 0 && (
+          <QualityChart data={analytics.timeSeriesData} />
         )}
 
         {/* Regeneration Stats */}

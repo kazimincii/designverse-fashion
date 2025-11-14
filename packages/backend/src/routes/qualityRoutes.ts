@@ -8,6 +8,7 @@ import {
   submitGenerationFeedback,
   getGenerationHistory,
   getGlobalQualityAnalytics,
+  exportGenerationHistoryCSV,
 } from '../controllers/qualityController';
 
 const router = Router();
@@ -36,5 +37,8 @@ router.post('/history/:historyId/feedback', authenticate, submitGenerationFeedba
 
 // Global analytics (cache for 15 minutes)
 router.get('/analytics/global', authenticate, cacheMiddleware(900, 'quality:global'), getGlobalQualityAnalytics);
+
+// Export generation history as CSV
+router.get('/sessions/:sessionId/export/csv', authenticate, exportGenerationHistoryCSV);
 
 export default router;
