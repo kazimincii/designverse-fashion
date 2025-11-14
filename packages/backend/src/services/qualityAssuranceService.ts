@@ -235,13 +235,25 @@ export class QualityAssuranceService {
     }
 
     // Calculate averages
-    const avgScore = histories.reduce((sum, h) => sum + (h.consistencyScore || 0), 0) / histories.length;
+    const avgScore =
+      histories.reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.consistencyScore || 0),
+        0
+      ) / histories.length;
     const avgFaceScore = histories
-      .filter(h => h.faceSimScore)
-      .reduce((sum, h) => sum + (h.faceSimScore || 0), 0) / histories.filter(h => h.faceSimScore).length || 0;
+      .filter((history: GenerationHistory) => history.faceSimScore)
+      .reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.faceSimScore || 0),
+        0
+      ) /
+      histories.filter((history: GenerationHistory) => history.faceSimScore).length || 0;
     const avgGarmentScore = histories
-      .filter(h => h.garmentAccScore)
-      .reduce((sum, h) => sum + (h.garmentAccScore || 0), 0) / histories.filter(h => h.garmentAccScore).length || 0;
+      .filter((history: GenerationHistory) => history.garmentAccScore)
+      .reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.garmentAccScore || 0),
+        0
+      ) /
+      histories.filter((history: GenerationHistory) => history.garmentAccScore).length || 0;
 
     // Identify patterns
     if (avgScore < this.THRESHOLDS.ACCEPTABLE.overall) {
@@ -259,16 +271,21 @@ export class QualityAssuranceService {
     }
 
     // Analyze regenerations
-    const regenerationRate = histories.filter(h => h.wasRegenerated).length / histories.length;
+    const regenerationRate =
+      histories.filter((history: GenerationHistory) => history.wasRegenerated).length / histories.length;
     if (regenerationRate > 0.5) {
       patterns.push('High regeneration rate - prompts or references may need optimization');
       recommendations.push('Review and optimize prompts for better first-try success');
     }
 
     // Identify success factors
-    const successfulGenerations = histories.filter(h => (h.consistencyScore || 0) >= this.THRESHOLDS.GOOD.overall);
+    const successfulGenerations = histories.filter(
+      (history: GenerationHistory) => (history.consistencyScore || 0) >= this.THRESHOLDS.GOOD.overall
+    );
     if (successfulGenerations.length > 0) {
-      const modelNames = successfulGenerations.map(h => h.modelName).filter((m): m is string => m !== null);
+      const modelNames = successfulGenerations
+        .map((history: GenerationHistory) => history.modelName)
+        .filter((modelName): modelName is string => modelName !== null);
       const commonModels = this.findCommonValues(modelNames);
       if (commonModels.length > 0) {
         successFactors.push(`Models with best results: ${commonModels.join(', ')}`);
@@ -305,29 +322,48 @@ export class QualityAssuranceService {
       };
     }
 
-    const withScores = histories.filter(h => h.consistencyScore !== null);
+    const withScores = histories.filter((history: GenerationHistory) => history.consistencyScore !== null);
     const avgConsistency = withScores.length > 0
-      ? withScores.reduce((sum, h) => sum + (h.consistencyScore || 0), 0) / withScores.length
+      ? withScores.reduce(
+          (sum: number, history: GenerationHistory) => sum + (history.consistencyScore || 0),
+          0
+        ) / withScores.length
       : 0;
 
-    const withFaceScores = histories.filter(h => h.faceSimScore !== null);
+    const withFaceScores = histories.filter((history: GenerationHistory) => history.faceSimScore !== null);
     const avgFace = withFaceScores.length > 0
-      ? withFaceScores.reduce((sum, h) => sum + (h.faceSimScore || 0), 0) / withFaceScores.length
+      ? withFaceScores.reduce(
+          (sum: number, history: GenerationHistory) => sum + (history.faceSimScore || 0),
+          0
+        ) / withFaceScores.length
       : 0;
 
-    const withGarmentScores = histories.filter(h => h.garmentAccScore !== null);
+    const withGarmentScores = histories.filter((history: GenerationHistory) => history.garmentAccScore !== null);
     const avgGarment = withGarmentScores.length > 0
-      ? withGarmentScores.reduce((sum, h) => sum + (h.garmentAccScore || 0), 0) / withGarmentScores.length
+      ? withGarmentScores.reduce(
+          (sum: number, history: GenerationHistory) => sum + (history.garmentAccScore || 0),
+          0
+        ) / withGarmentScores.length
       : 0;
 
-    const withStyleScores = histories.filter(h => h.styleMatchScore !== null);
+    const withStyleScores = histories.filter((history: GenerationHistory) => history.styleMatchScore !== null);
     const avgStyle = withStyleScores.length > 0
-      ? withStyleScores.reduce((sum, h) => sum + (h.styleMatchScore || 0), 0) / withStyleScores.length
+      ? withStyleScores.reduce(
+          (sum: number, history: GenerationHistory) => sum + (history.styleMatchScore || 0),
+          0
+        ) / withStyleScores.length
       : 0;
 
-    const regenerationRate = histories.filter(h => h.wasRegenerated).length / histories.length;
-    const successRate = withScores.filter(h => (h.consistencyScore || 0) >= this.THRESHOLDS.ACCEPTABLE.overall).length / withScores.length;
-    const totalCost = histories.reduce((sum, h) => sum + (h.apiCostUsd || 0), 0);
+    const regenerationRate =
+      histories.filter((history: GenerationHistory) => history.wasRegenerated).length / histories.length;
+    const successRate =
+      withScores.filter(
+        (history: GenerationHistory) => (history.consistencyScore || 0) >= this.THRESHOLDS.ACCEPTABLE.overall
+      ).length / withScores.length;
+    const totalCost = histories.reduce(
+      (sum: number, history: GenerationHistory) => sum + (history.apiCostUsd || 0),
+      0
+    );
 
     return {
       averageConsistencyScore: Math.round(avgConsistency),

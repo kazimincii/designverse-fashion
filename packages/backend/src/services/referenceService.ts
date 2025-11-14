@@ -1,5 +1,5 @@
 import { prisma } from '../config/database';
-import { ReferenceType } from '@prisma/client';
+import { ReferenceType, type GenerationHistory } from '@prisma/client';
 
 export interface CreateCharacterRefData {
   sessionId: string;
@@ -505,24 +505,42 @@ export const referenceService = {
     }
 
     const totalGenerations = histories.length;
-    const regenerations = histories.filter((h) => h.wasRegenerated).length;
+    const regenerations = histories.filter((history: GenerationHistory) => history.wasRegenerated).length;
 
     const avgConsistency =
-      histories.reduce((sum, h) => sum + (h.consistencyScore || 0), 0) /
+      histories.reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.consistencyScore || 0),
+        0
+      ) /
       totalGenerations;
     const avgFace =
-      histories.reduce((sum, h) => sum + (h.faceSimScore || 0), 0) /
+      histories.reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.faceSimScore || 0),
+        0
+      ) /
       totalGenerations;
     const avgGarment =
-      histories.reduce((sum, h) => sum + (h.garmentAccScore || 0), 0) /
+      histories.reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.garmentAccScore || 0),
+        0
+      ) /
       totalGenerations;
     const avgStyle =
-      histories.reduce((sum, h) => sum + (h.styleMatchScore || 0), 0) /
+      histories.reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.styleMatchScore || 0),
+        0
+      ) /
       totalGenerations;
     const avgTime =
-      histories.reduce((sum, h) => sum + (h.processingTimeMs || 0), 0) /
+      histories.reduce(
+        (sum: number, history: GenerationHistory) => sum + (history.processingTimeMs || 0),
+        0
+      ) /
       totalGenerations;
-    const totalCost = histories.reduce((sum, h) => sum + (h.apiCostUsd || 0), 0);
+    const totalCost = histories.reduce(
+      (sum: number, history: GenerationHistory) => sum + (history.apiCostUsd || 0),
+      0
+    );
 
     return {
       totalGenerations,
