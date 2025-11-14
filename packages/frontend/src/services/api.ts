@@ -385,3 +385,22 @@ export const searchApi = {
   getSuggestions: (query: string) =>
     api.get('/search/suggestions', { params: { query } }),
 };
+
+// Bulk Operations API
+export const bulkApi = {
+  // Story bulk operations
+  deleteStories: (storyIds: string[]) =>
+    api.post('/bulk/stories/delete', { storyIds }),
+  updateStoryPrivacy: (storyIds: string[], privacy: 'PUBLIC' | 'UNLISTED' | 'PRIVATE') =>
+    api.post('/bulk/stories/privacy', { storyIds, privacy }),
+  addStoryTags: (storyIds: string[], tags: string[]) =>
+    api.post('/bulk/stories/tags/add', { storyIds, tags }),
+  updateStoryCategory: (storyIds: string[], category: string) =>
+    api.post('/bulk/stories/category', { storyIds, category }),
+
+  // Template bulk operations
+  deleteTemplates: (templateIds: string[]) =>
+    api.post('/bulk/templates/delete', { templateIds }),
+  updateTemplateVisibility: (templateIds: string[], isPublic: boolean) =>
+    api.post('/bulk/templates/visibility', { templateIds, isPublic }),
+};
