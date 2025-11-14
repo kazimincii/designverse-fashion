@@ -1,17 +1,21 @@
 import { useState } from 'react';
-import { Clock, Star, RefreshCw, AlertCircle, TrendingUp, Image as ImageIcon } from 'lucide-react';
+import { Clock, Star, RefreshCw, AlertCircle, TrendingUp, Image as ImageIcon, Heart } from 'lucide-react';
 import type { GenerationHistory } from '../types/quality';
 import FeedbackModal from './FeedbackModal';
+import { qualityApi } from '../services/api';
+import toast from 'react-hot-toast';
 
 interface GenerationHistoryListProps {
   history: GenerationHistory[];
   loading?: boolean;
   onFeedbackSubmit?: (historyId: string, rating: number, feedback?: string, issues?: string[]) => Promise<void>;
+  onFavoriteToggle?: () => void;
 }
 
-export default function GenerationHistoryList({ history, loading, onFeedbackSubmit }: GenerationHistoryListProps) {
+export default function GenerationHistoryList({ history, loading, onFeedbackSubmit, onFavoriteToggle }: GenerationHistoryListProps) {
   const [selectedHistory, setSelectedHistory] = useState<GenerationHistory | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [togglingFavorite, setTogglingFavorite] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -41,6 +45,23 @@ export default function GenerationHistoryList({ history, loading, onFeedbackSubm
       await onFeedbackSubmit(selectedHistory.id, rating, feedback, issues);
       setShowFeedbackModal(false);
       setSelectedHistory(null);
+    }
+  };
+
+  const handleFavoriteToggle = async (historyId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setTogglingFavorite(historyId);
+
+    try {
+      await qualityApi.toggleFavorite(historyId);
+      if (onFavoriteToggle) {
+        onFavoriteToggle();
+      }
+    } catch (err: any) {
+      console.error('Failed to toggle favorite:', err);
+      toast.error('Failed to update favorite status');
+    } finally {
+      setTogglingFavorite(null);
     }
   };
 
@@ -93,7 +114,19 @@ export default function GenerationHistoryList({ history, loading, onFeedbackSubm
                 </div>
                 <p className="text-sm text-gray-300 line-clamp-2">{item.prompt}</p>
               </div>
-              <div className="ml-4">
+              <div className="ml-4 flex items-center space-x-2">
+                <button
+                  onClick={(e) => handleFavoriteToggle(item.id, e)}
+                  disabled={togglingFavorite === item.id}
+                  className={`p-2 rounded-lg transition-colors ${
+                    (item as any).isFavorite
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white'
+                  } disabled:opacity-50`}
+                  title={(item as any).isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Heart className={`w-4 h-4 ${(item as any).isFavorite ? 'fill-current' : ''}`} />
+                </button>
                 <button
                   onClick={() => handleOpenFeedback(item)}
                   className="flex items-center space-x-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm transition-colors"

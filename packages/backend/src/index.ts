@@ -25,6 +25,8 @@ import photoSessionRoutes from './routes/photoSessionRoutes';
 import referenceRoutes from './routes/referenceRoutes';
 import qualityRoutes from './routes/qualityRoutes';
 import webhookRoutes from './routes/webhookRoutes';
+import searchRoutes from './routes/searchRoutes';
+import bulkRoutes from './routes/bulkRoutes';
 
 // Import workers (starts processing queues)
 import './workers/videoGenerationWorker';
@@ -78,10 +80,12 @@ app.use('/api/clips', clipRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api', uploadRoutes);
-app.use('/api', templateRoutes);
+app.use('/api/templates', templateRoutes);
 app.use('/api/photo', photoSessionRoutes);
 app.use('/api/references', referenceRoutes);
 app.use('/api/quality', qualityRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/bulk', bulkRoutes);
 app.use('/webhooks', webhookRoutes); // No /api prefix for webhooks
 
 // Performance stats endpoint

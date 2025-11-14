@@ -75,21 +75,23 @@ model User {
   avatarUrl      String?
   planType       PlanType @default(FREE)
   creditsBalance Int      @default(100)
+  metadataJson   Json?    // For storing preferences, settings, etc.
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  stories       Story[]
-  folders       Folder[]
-  assets        Asset[]
-  jobs          Job[]
-  likes         Like[]
-  comments      Comment[]
-  followers     Follow[]       @relation("Followers")
-  following     Follow[]       @relation("Following")
-  notifications Notification[]
-  photoSessions PhotoSession[]
+  stories          Story[]
+  folders          Folder[]
+  assets           Asset[]
+  jobs             Job[]
+  likes            Like[]
+  comments         Comment[]
+  followers        Follow[]            @relation("Followers")
+  following        Follow[]            @relation("Following")
+  notifications    Notification[]
+  photoSessions    PhotoSession[]
+  sessionTemplates SessionTemplate[]
 
   @@index([email])
   @@index([handle])
@@ -106,6 +108,8 @@ model Story {
   totalDurationSeconds Float?
   publishedAt          DateTime?
   viewCount            Int         @default(0)
+  category             String?     // Primary category: "fashion", "lifestyle", "editorial", etc.
+  tags                 String[]    // Multiple tags for filtering and discovery
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -123,6 +127,7 @@ model Story {
   @@index([status])
   @@index([privacy])
   @@index([publishedAt])
+  @@index([category])
 }
 
 model Clip {
@@ -353,10 +358,11 @@ enum AnimationStyle {
 }
 
 model PhotoSession {
-  id      String             @id @default(cuid())
-  ownerId String
-  title   String
-  status  PhotoSessionStatus @default(DRAFT)
+  id           String             @id @default(cuid())
+  ownerId      String
+  title        String
+  status       PhotoSessionStatus @default(DRAFT)
+  metadataJson Json?              // For storing quality thresholds, preferences, etc.
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -569,6 +575,7 @@ model GenerationHistory {
 
   // Status
   wasRegenerated    Boolean @default(false) // If this replaced a low-quality generation
+  isFavorite        Boolean @default(false) // User marked as favorite
   userRating        Int?    // User satisfaction rating (1-5)
   userFeedback      String? // User comments
 
@@ -588,6 +595,7 @@ model GenerationHistory {
   @@index([garmentRefId])
   @@index([styleRefId])
   @@index([consistencyScore])
+  @@index([isFavorite])
   @@index([createdAt])
 }
 
@@ -615,6 +623,35 @@ model ReferencePreset {
   updatedAt DateTime @updatedAt
 
   @@index([creatorId])
+  @@index([category])
+  @@index([isPublic])
+  @@index([usageCount])
+}
+
+// Session Templates - Save frequently used session configurations
+model SessionTemplate {
+  id           String  @id @default(cuid())
+  ownerId      String
+  name         String
+  description  String?
+  category     String? // "product-photo", "fashion-editorial", "lookbook", etc.
+  thumbnailUrl String?
+
+  // Template Configuration
+  templateData Json // Contains default settings, references, quality thresholds
+
+  // Template Metadata
+  isPublic     Boolean @default(false) // Share with other users
+  usageCount   Int     @default(0)     // Track how many times used
+  tags         String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
   @@index([category])
   @@index([isPublic])
   @@index([usageCount])

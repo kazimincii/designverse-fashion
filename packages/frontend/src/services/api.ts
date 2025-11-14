@@ -51,18 +51,24 @@ export const authApi = {
   login: (data: { email: string; password: string }) =>
     api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
+  updateProfile: (data: { displayName?: string; bio?: string; avatarUrl?: string; handle?: string }) =>
+    api.patch('/auth/profile', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.post('/auth/change-password', data),
 };
 
 // Story API
 export const storyApi = {
-  create: (data: { title: string; description?: string; privacy?: string }) =>
+  create: (data: { title: string; description?: string; privacy?: string; category?: string; tags?: string[] }) =>
     api.post('/stories', data),
   getMyStories: () => api.get('/stories/my-stories'),
   getById: (id: string) => api.get(`/stories/${id}`),
   update: (id: string, data: any) => api.patch(`/stories/${id}`, data),
   delete: (id: string) => api.delete(`/stories/${id}`),
-  getFeed: (params?: { page?: number; limit?: number; type?: string }) =>
+  getFeed: (params?: { page?: number; limit?: number; type?: string; category?: string; tags?: string[] }) =>
     api.get('/stories/feed', { params }),
+  getCategories: () => api.get('/stories/categories'),
+  getPopularTags: () => api.get('/stories/tags/popular'),
 };
 
 // Clip API
@@ -312,4 +318,89 @@ export const qualityApi = {
 
   // Get performance stats
   getPerformanceStats: () => api.get('/performance/stats'),
+
+  // Batch regenerate low quality generations
+  batchRegenerate: (sessionId: string, params?: { threshold?: number; maxRegenerations?: number }) =>
+    api.post(`/quality/sessions/${sessionId}/batch-regenerate`, params),
+
+  // Quality thresholds
+  getQualityThresholds: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/thresholds`),
+  setQualityThresholds: (sessionId: string, thresholds: any) =>
+    api.put(`/quality/sessions/${sessionId}/thresholds`, thresholds),
+
+  // Notification preferences
+  getNotificationPreferences: () =>
+    api.get('/quality/preferences/notifications'),
+  setNotificationPreferences: (preferences: any) =>
+    api.put('/quality/preferences/notifications', preferences),
+
+  // Favorites
+  toggleFavorite: (historyId: string) =>
+    api.post(`/quality/history/${historyId}/favorite`),
+  getFavorites: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/favorites`),
+};
+
+// Session Templates API
+export const templateApi = {
+  create: (data: {
+    name: string;
+    description?: string;
+    category?: string;
+    thumbnailUrl?: string;
+    templateData: any;
+    isPublic?: boolean;
+    tags?: string[];
+  }) => api.post('/templates', data),
+  getMyTemplates: () => api.get('/templates/my-templates'),
+  getPublicTemplates: (params?: { category?: string; limit?: number }) =>
+    api.get('/templates/public', { params }),
+  getById: (id: string) => api.get(`/templates/${id}`),
+  update: (id: string, data: any) => api.patch(`/templates/${id}`, data),
+  delete: (id: string) => api.delete(`/templates/${id}`),
+  use: (id: string) => api.post(`/templates/${id}/use`),
+};
+
+// Search API
+export const searchApi = {
+  globalSearch: (params: {
+    query: string;
+    type?: 'story' | 'template' | 'session';
+    limit?: number;
+  }) => api.get('/search/global', { params }),
+  advancedStoryFilter: (params: {
+    category?: string;
+    tags?: string;
+    minViews?: number;
+    maxViews?: number;
+    minLikes?: number;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: 'createdAt' | 'viewCount' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
+    limit?: number;
+    offset?: number;
+  }) => api.get('/search/stories/filter', { params }),
+  getSuggestions: (query: string) =>
+    api.get('/search/suggestions', { params: { query } }),
+};
+
+// Bulk Operations API
+export const bulkApi = {
+  // Story bulk operations
+  deleteStories: (storyIds: string[]) =>
+    api.post('/bulk/stories/delete', { storyIds }),
+  updateStoryPrivacy: (storyIds: string[], privacy: 'PUBLIC' | 'UNLISTED' | 'PRIVATE') =>
+    api.post('/bulk/stories/privacy', { storyIds, privacy }),
+  addStoryTags: (storyIds: string[], tags: string[]) =>
+    api.post('/bulk/stories/tags/add', { storyIds, tags }),
+  updateStoryCategory: (storyIds: string[], category: string) =>
+    api.post('/bulk/stories/category', { storyIds, category }),
+
+  // Template bulk operations
+  deleteTemplates: (templateIds: string[]) =>
+    api.post('/bulk/templates/delete', { templateIds }),
+  updateTemplateVisibility: (templateIds: string[], isPublic: boolean) =>
+    api.post('/bulk/templates/visibility', { templateIds, isPublic }),
 };

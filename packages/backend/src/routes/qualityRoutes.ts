@@ -10,6 +10,13 @@ import {
   getGenerationHistoryFiltered,
   getGlobalQualityAnalytics,
   exportGenerationHistoryCSV,
+  batchRegenerate,
+  getQualityThresholds,
+  setQualityThresholds,
+  getNotificationPreferences,
+  setNotificationPreferences,
+  toggleFavorite,
+  getFavorites,
 } from '../controllers/qualityController';
 
 const router = Router();
@@ -121,5 +128,20 @@ router.get('/analytics/global', authenticate, cacheMiddleware(900, 'quality:glob
 
 // Export generation history as CSV
 router.get('/sessions/:sessionId/export/csv', authenticate, exportGenerationHistoryCSV);
+
+// Batch operations
+router.post('/sessions/:sessionId/batch-regenerate', authenticate, batchRegenerate);
+
+// Quality thresholds
+router.get('/sessions/:sessionId/thresholds', authenticate, getQualityThresholds);
+router.put('/sessions/:sessionId/thresholds', authenticate, setQualityThresholds);
+
+// User notification preferences
+router.get('/preferences/notifications', authenticate, getNotificationPreferences);
+router.put('/preferences/notifications', authenticate, setNotificationPreferences);
+
+// Favorites
+router.post('/history/:historyId/favorite', authenticate, toggleFavorite);
+router.get('/sessions/:sessionId/favorites', authenticate, cacheMiddleware(60, 'quality:favorites'), getFavorites);
 
 export default router;

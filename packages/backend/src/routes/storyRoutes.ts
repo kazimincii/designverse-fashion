@@ -7,6 +7,8 @@ import {
   updateStory,
   deleteStory,
   getFeed,
+  getAvailableCategories,
+  getPopularTags,
 } from '../controllers/storyController';
 import { authenticate, optionalAuth } from '../middleware/auth';
 import { validate } from '../middleware/validation';
@@ -20,6 +22,9 @@ router.post(
     body('title').trim().isLength({ min: 1, max: 200 }),
     body('description').optional().trim(),
     body('privacy').optional().isIn(['PRIVATE', 'UNLISTED', 'PUBLIC']),
+    body('category').optional().trim().isLength({ max: 50 }),
+    body('tags').optional().isArray(),
+    body('tags.*').optional().trim().isLength({ min: 1, max: 30 }),
     validate,
   ],
   createStory
@@ -27,6 +32,8 @@ router.post(
 
 router.get('/my-stories', authenticate, getMyStories);
 router.get('/feed', optionalAuth, getFeed);
+router.get('/categories', optionalAuth, getAvailableCategories);
+router.get('/tags/popular', optionalAuth, getPopularTags);
 router.get('/:id', optionalAuth, getStoryById);
 
 router.patch(
@@ -37,6 +44,9 @@ router.patch(
     body('description').optional().trim(),
     body('privacy').optional().isIn(['PRIVATE', 'UNLISTED', 'PUBLIC']),
     body('status').optional().isIn(['DRAFT', 'PUBLISHED']),
+    body('category').optional().trim().isLength({ max: 50 }),
+    body('tags').optional().isArray(),
+    body('tags.*').optional().trim().isLength({ min: 1, max: 30 }),
     validate,
   ],
   updateStory
