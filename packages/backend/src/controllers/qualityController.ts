@@ -178,6 +178,59 @@ export const getGenerationHistory = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Get generation history with advanced filters
+ */
+export const getGenerationHistoryFiltered = async (req: AuthRequest, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const {
+      search,
+      minScore,
+      maxScore,
+      modelName,
+      wasRegenerated,
+      sortBy,
+      sortOrder,
+      limit,
+    } = req.query;
+    const userId = req.user!.userId;
+
+    // Verify session ownership
+    const { photoSessionService } = await import('../services/photoSessionService');
+    const session = await photoSessionService.getSession(sessionId);
+
+    if (!session) {
+      throw new AppError('Session not found', 404);
+    }
+
+    if (session.ownerId !== userId) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    // Parse filters
+    const options: any = {};
+    if (search) options.search = search as string;
+    if (minScore) options.minScore = parseFloat(minScore as string);
+    if (maxScore) options.maxScore = parseFloat(maxScore as string);
+    if (modelName) options.modelName = modelName as string;
+    if (wasRegenerated !== undefined) options.wasRegenerated = wasRegenerated === 'true';
+    if (sortBy) options.sortBy = sortBy as 'date' | 'score' | 'cost';
+    if (sortOrder) options.sortOrder = sortOrder as 'asc' | 'desc';
+    if (limit) options.limit = parseInt(limit as string);
+
+    // Get filtered history
+    const history = await referenceService.getGenerationHistoryFiltered(sessionId, options);
+
+    res.json({
+      success: true,
+      data: { history, filters: options },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
  * Get analytics for all sessions (user's own data)
  */
 export const getGlobalQualityAnalytics = async (req: AuthRequest, res: Response) => {

@@ -19,6 +19,8 @@
     "prisma:migrate": "cd packages/backend && npx prisma migrate dev"
   },
   "devDependencies": {
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "concurrently": "^8.2.2"
   },
   "engines": {
