@@ -59,14 +59,16 @@ export const authApi = {
 
 // Story API
 export const storyApi = {
-  create: (data: { title: string; description?: string; privacy?: string }) =>
+  create: (data: { title: string; description?: string; privacy?: string; category?: string; tags?: string[] }) =>
     api.post('/stories', data),
   getMyStories: () => api.get('/stories/my-stories'),
   getById: (id: string) => api.get(`/stories/${id}`),
   update: (id: string, data: any) => api.patch(`/stories/${id}`, data),
   delete: (id: string) => api.delete(`/stories/${id}`),
-  getFeed: (params?: { page?: number; limit?: number; type?: string }) =>
+  getFeed: (params?: { page?: number; limit?: number; type?: string; category?: string; tags?: string[] }) =>
     api.get('/stories/feed', { params }),
+  getCategories: () => api.get('/stories/categories'),
+  getPopularTags: () => api.get('/stories/tags/popular'),
 };
 
 // Clip API

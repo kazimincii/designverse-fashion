@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Save, Upload, Play, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Play, Plus, Trash2, X, Tag } from 'lucide-react';
 import { storyApi, clipApi } from '../services/api';
 import toast from 'react-hot-toast';
 import { Story, Clip } from '../types';
@@ -14,6 +14,9 @@ export default function StoryEditorPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState<'PRIVATE' | 'UNLISTED' | 'PUBLIC'>('UNLISTED');
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   const { data: storyData, isLoading } = useQuery({
     queryKey: ['story', storyId],
@@ -30,6 +33,8 @@ export default function StoryEditorPage() {
       setTitle(storyData.title);
       setDescription(storyData.description || '');
       setPrivacy(storyData.privacy);
+      setCategory((storyData as any).category || '');
+      setTags((storyData as any).tags || []);
     }
   }, [storyData]);
 
@@ -66,7 +71,28 @@ export default function StoryEditorPage() {
   });
 
   const handleSave = () => {
-    updateStoryMutation.mutate({ title, description, privacy });
+    updateStoryMutation.mutate({
+      title,
+      description,
+      privacy,
+      category: category || null,
+      tags: tags.length > 0 ? tags : [],
+    });
+  };
+
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      const newTag = tagInput.trim().toLowerCase();
+      if (!tags.includes(newTag)) {
+        setTags([...tags, newTag]);
+      }
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((t) => t !== tagToRemove));
   };
 
   const handlePublish = () => {
@@ -225,6 +251,55 @@ export default function StoryEditorPage() {
                     placeholder="Describe your story..."
                   />
                 </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., fashion, lifestyle, editorial"
+                  />
+                </div>
+
+                {/* Tags */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Tags
+                  </label>
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleAddTag}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Type a tag and press Enter"
+                  />
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center space-x-1 bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 text-xs"
+                        >
+                          <Tag className="w-3 h-3" />
+                          <span>{tag}</span>
+                          <button
+                            onClick={() => handleRemoveTag(tag)}
+                            className="hover:bg-purple-500/30 rounded-full p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
                     Stats

@@ -107,6 +107,8 @@ model Story {
   totalDurationSeconds Float?
   publishedAt          DateTime?
   viewCount            Int         @default(0)
+  category             String?     // Primary category: "fashion", "lifestyle", "editorial", etc.
+  tags                 String[]    // Multiple tags for filtering and discovery
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -124,6 +126,7 @@ model Story {
   @@index([status])
   @@index([privacy])
   @@index([publishedAt])
+  @@index([category])
 }
 
 model Clip {
