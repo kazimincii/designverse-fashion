@@ -683,3 +683,108 @@ export const setNotificationPreferences = async (req: AuthRequest, res: Response
     throw error;
   }
 };
+
+/**
+ * Toggle favorite status for a generation
+ */
+export const toggleFavorite = async (req: AuthRequest, res: Response) => {
+  try {
+    const { historyId } = req.params;
+    const userId = req.user!.userId;
+
+    // Get the generation history
+    const history = await prisma.generationHistory.findUnique({
+      where: { id: historyId },
+      include: {
+        session: {
+          select: { ownerId: true },
+        },
+      },
+    });
+
+    if (!history) {
+      throw new AppError('Generation history not found', 404);
+    }
+
+    // Check authorization
+    if (history.session.ownerId !== userId) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    // Toggle favorite
+    const updated = await prisma.generationHistory.update({
+      where: { id: historyId },
+      data: { isFavorite: !history.isFavorite },
+    });
+
+    res.json({
+      success: true,
+      message: updated.isFavorite ? 'Added to favorites' : 'Removed from favorites',
+      data: { isFavorite: updated.isFavorite },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get all favorite generations for a session
+ */
+export const getFavorites = async (req: AuthRequest, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user!.userId;
+
+    const { photoSessionService } = await import('../services/photoSessionService');
+    const session = await photoSessionService.getSession(sessionId);
+
+    if (!session || session.ownerId !== userId) {
+      throw new AppError('Not authorized', 403);
+    }
+
+    const favorites = await prisma.generationHistory.findMany({
+      where: {
+        sessionId,
+        isFavorite: true,
+      },
+      include: {
+        characterRef: {
+          select: {
+            id: true,
+            name: true,
+            faceImageUrl: true,
+          },
+        },
+        garmentRef: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            primaryColor: true,
+          },
+        },
+        styleRef: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
+      },
+      orderBy: [
+        { consistencyScore: 'desc' },
+        { createdAt: 'desc' },
+      ],
+    });
+
+    res.json({
+      success: true,
+      data: {
+        favorites,
+        count: favorites.length,
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+};

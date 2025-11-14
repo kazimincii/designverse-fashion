@@ -574,6 +574,7 @@ model GenerationHistory {
 
   // Status
   wasRegenerated    Boolean @default(false) // If this replaced a low-quality generation
+  isFavorite        Boolean @default(false) // User marked as favorite
   userRating        Int?    // User satisfaction rating (1-5)
   userFeedback      String? // User comments
 
@@ -593,6 +594,7 @@ model GenerationHistory {
   @@index([garmentRefId])
   @@index([styleRefId])
   @@index([consistencyScore])
+  @@index([isFavorite])
   @@index([createdAt])
 }
 

@@ -163,6 +163,11 @@ export default function SessionAnalytics() {
     }
   };
 
+  const handleFavoriteToggle = () => {
+    // Reload data to reflect favorite changes
+    loadData();
+  };
+
   // Get available models from history
   const availableModels = useMemo(() => {
     const models = new Set<string>();
@@ -392,6 +397,7 @@ export default function SessionAnalytics() {
                   <GenerationHistoryList
                     history={history.slice(0, 5)}
                     onFeedbackSubmit={handleFeedbackSubmit}
+                    onFavoriteToggle={handleFavoriteToggle}
                   />
                 </div>
               )}
@@ -426,6 +432,7 @@ export default function SessionAnalytics() {
               <GenerationHistoryList
                 history={displayHistory}
                 onFeedbackSubmit={handleFeedbackSubmit}
+                onFavoriteToggle={handleFavoriteToggle}
               />
 
               {displayHistory.length === 0 && (

@@ -334,4 +334,10 @@ export const qualityApi = {
     api.get('/quality/preferences/notifications'),
   setNotificationPreferences: (preferences: any) =>
     api.put('/quality/preferences/notifications', preferences),
+
+  // Favorites
+  toggleFavorite: (historyId: string) =>
+    api.post(`/quality/history/${historyId}/favorite`),
+  getFavorites: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/favorites`),
 };
