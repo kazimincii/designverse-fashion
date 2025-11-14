@@ -7,7 +7,9 @@ import {
   getGenerationAnalysis,
   submitGenerationFeedback,
   getGenerationHistory,
+  getGenerationHistoryFiltered,
   getGlobalQualityAnalytics,
+  exportGenerationHistoryCSV,
 } from '../controllers/qualityController';
 
 const router = Router();
@@ -19,7 +21,34 @@ const router = Router();
  * Read operations are cached for performance
  */
 
-// Session-specific quality metrics (cache for 5 minutes)
+/**
+ * @swagger
+ * /api/quality/sessions/{sessionId}/metrics:
+ *   get:
+ *     tags: [Quality]
+ *     summary: Get quality metrics for a photo session
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Quality metrics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     metrics:
+ *                       $ref: '#/components/schemas/QualityMetrics'
+ */
 router.get('/sessions/:sessionId/metrics', authenticate, cacheMiddleware(300, 'quality:metrics'), getSessionQualityMetrics);
 
 // Session quality report (cache for 10 minutes)
@@ -31,10 +60,66 @@ router.get('/sessions/:sessionId/analysis', authenticate, cacheMiddleware(900, '
 // Generation history list (cache for 2 minutes)
 router.get('/sessions/:sessionId/history', authenticate, cacheMiddleware(120, 'quality:history'), getGenerationHistory);
 
+// Generation history with advanced filters (cache for 1 minute)
+router.get('/sessions/:sessionId/history/filtered', authenticate, cacheMiddleware(60, 'quality:history:filtered'), getGenerationHistoryFiltered);
+
 // Submit feedback for a specific generation
 router.post('/history/:historyId/feedback', authenticate, submitGenerationFeedback);
 
-// Global analytics (admin)
-router.get('/analytics/global', authenticate, getGlobalQualityAnalytics);
+/**
+ * @swagger
+ * /api/quality/analytics/global:
+ *   get:
+ *     tags: [Quality]
+ *     summary: Get global quality analytics across all user sessions
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter sessions from this date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter sessions to this date
+ *       - in: query
+ *         name: minGenerations
+ *         schema:
+ *           type: integer
+ *         description: Minimum number of generations required
+ *     responses:
+ *       200:
+ *         description: Global analytics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     analytics:
+ *                       type: object
+ *                       properties:
+ *                         totalSessions:
+ *                           type: integer
+ *                         totalGenerations:
+ *                           type: integer
+ *                         averageConsistencyScore:
+ *                           type: number
+ *                         topPerformingModels:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ */
+router.get('/analytics/global', authenticate, cacheMiddleware(900, 'quality:global'), getGlobalQualityAnalytics);
+
+// Export generation history as CSV
+router.get('/sessions/:sessionId/export/csv', authenticate, exportGenerationHistoryCSV);
 
 export default router;

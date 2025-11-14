@@ -481,6 +481,84 @@ export const referenceService = {
   },
 
   /**
+   * Get generation history with advanced filters
+   */
+  async getGenerationHistoryFiltered(
+    sessionId: string,
+    options: {
+      search?: string;
+      minScore?: number;
+      maxScore?: number;
+      modelName?: string;
+      wasRegenerated?: boolean;
+      sortBy?: 'date' | 'score' | 'cost';
+      sortOrder?: 'asc' | 'desc';
+      limit?: number;
+    }
+  ) {
+    const {
+      search,
+      minScore,
+      maxScore,
+      modelName,
+      wasRegenerated,
+      sortBy = 'date',
+      sortOrder = 'desc',
+      limit = 50,
+    } = options;
+
+    const where: any = { sessionId };
+
+    // Apply filters
+    if (search) {
+      where.OR = [
+        { basePrompt: { contains: search, mode: 'insensitive' } },
+        { enhancedPrompt: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (minScore !== undefined || maxScore !== undefined) {
+      where.consistencyScore = {};
+      if (minScore !== undefined) where.consistencyScore.gte = minScore;
+      if (maxScore !== undefined) where.consistencyScore.lte = maxScore;
+    }
+
+    if (modelName) {
+      where.modelName = modelName;
+    }
+
+    if (wasRegenerated !== undefined) {
+      where.wasRegenerated = wasRegenerated;
+    }
+
+    // Determine sort order
+    let orderBy: any;
+    switch (sortBy) {
+      case 'score':
+        orderBy = { consistencyScore: sortOrder };
+        break;
+      case 'cost':
+        orderBy = { apiCostUsd: sortOrder };
+        break;
+      case 'date':
+      default:
+        orderBy = { createdAt: sortOrder };
+        break;
+    }
+
+    return await prisma.generationHistory.findMany({
+      where,
+      include: {
+        characterRef: true,
+        garmentRef: true,
+        styleRef: true,
+      },
+      orderBy,
+      take: limit,
+    });
+  },
+
+  /**
    * Get generation analytics
    */
   async getGenerationAnalytics(sessionId: string) {

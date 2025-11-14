@@ -278,6 +278,24 @@ export const qualityApi = {
       params: { limit },
     }),
 
+  // Get generation history with advanced filters
+  getGenerationHistoryFiltered: (
+    sessionId: string,
+    filters?: {
+      search?: string;
+      minScore?: number;
+      maxScore?: number;
+      modelName?: string;
+      wasRegenerated?: boolean;
+      sortBy?: 'date' | 'score' | 'cost';
+      sortOrder?: 'asc' | 'desc';
+      limit?: number;
+    }
+  ) =>
+    api.get(`/quality/sessions/${sessionId}/history/filtered`, {
+      params: filters,
+    }),
+
   // Submit feedback for a generation
   submitFeedback: (historyId: string, data: { rating: number; feedback?: string; issues?: string[] }) =>
     api.post(`/quality/history/${historyId}/feedback`, data),
@@ -285,4 +303,13 @@ export const qualityApi = {
   // Get global analytics (admin)
   getGlobalAnalytics: (params?: { startDate?: string; endDate?: string; minGenerations?: number }) =>
     api.get('/quality/analytics/global', { params }),
+
+  // Export generation history as CSV
+  exportHistoryCSV: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/export/csv`, {
+      responseType: 'blob',
+    }),
+
+  // Get performance stats
+  getPerformanceStats: () => api.get('/performance/stats'),
 };

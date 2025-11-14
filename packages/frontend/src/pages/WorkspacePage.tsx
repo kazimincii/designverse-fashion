@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Video, Clock, Eye, Heart, Camera } from 'lucide-react';
+import { Plus, Video, Clock, Eye, Heart, Camera, BarChart3 } from 'lucide-react';
 import { storyApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { Story } from '../types';
+import NotificationIndicator from '../components/NotificationIndicator';
 
 export default function WorkspacePage() {
   const { user, logout } = useAuth();
@@ -57,6 +58,7 @@ export default function WorkspacePage() {
                 Profile
               </Link>
               <div className="flex items-center space-x-3">
+                <NotificationIndicator />
                 <span className="text-sm text-gray-400">
                   {user?.creditsBalance} credits
                 </span>
@@ -78,6 +80,13 @@ export default function WorkspacePage() {
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-white">My Stories</h2>
           <div className="flex items-center space-x-4">
+            <Link
+              to="/analytics"
+              className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition-all"
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span>Analytics</span>
+            </Link>
             <Link
               to="/premium-photo"
               className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all relative"

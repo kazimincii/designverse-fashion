@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Download, TrendingUp } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Download, TrendingUp, FileDown } from 'lucide-react';
 import { qualityApi } from '../services/api';
 import QualityMetricsCard from '../components/QualityMetricsCard';
 import QualityReportView from '../components/QualityReportView';
 import GenerationHistoryList from '../components/GenerationHistoryList';
+import HistoryFilters from '../components/HistoryFilters';
 import type { QualityMetrics, QualityReport, GenerationHistory } from '../types/quality';
+import type { HistoryFilterOptions } from '../components/HistoryFilters';
 
 type TabType = 'overview' | 'report' | 'history';
 
@@ -17,9 +19,12 @@ export default function SessionAnalytics() {
   const [metrics, setMetrics] = useState<QualityMetrics | null>(null);
   const [report, setReport] = useState<QualityReport | null>(null);
   const [history, setHistory] = useState<GenerationHistory[]>([]);
+  const [filteredHistory, setFilteredHistory] = useState<GenerationHistory[]>([]);
+  const [filters, setFilters] = useState<HistoryFilterOptions>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [exportingCSV, setExportingCSV] = useState(false);
 
   useEffect(() => {
     if (sessionId) {
@@ -103,6 +108,66 @@ export default function SessionAnalytics() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const handleExportCSV = async () => {
+    if (!sessionId) return;
+
+    try {
+      setExportingCSV(true);
+      const response = await qualityApi.exportHistoryCSV(sessionId);
+
+      const url = URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `generation-history-${sessionId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('Failed to export CSV:', err);
+      setError(err.response?.data?.error || 'Failed to export CSV');
+    } finally {
+      setExportingCSV(false);
+    }
+  };
+
+  const handleFilterChange = async (newFilters: HistoryFilterOptions) => {
+    if (!sessionId) return;
+
+    setFilters(newFilters);
+
+    try {
+      const response = await qualityApi.getGenerationHistoryFiltered(sessionId, {
+        search: newFilters.search,
+        minScore: newFilters.minScore,
+        maxScore: newFilters.maxScore,
+        modelName: newFilters.modelName,
+        wasRegenerated: newFilters.wasRegenerated,
+        sortBy: newFilters.sortBy,
+        sortOrder: newFilters.sortOrder,
+        limit: 100,
+      });
+
+      setFilteredHistory(response.data.data.history);
+    } catch (err: any) {
+      console.error('Failed to filter history:', err);
+      // Fall back to unfiltered history
+      setFilteredHistory(history);
+    }
+  };
+
+  // Get available models from history
+  const availableModels = useMemo(() => {
+    const models = new Set<string>();
+    history.forEach((h) => {
+      if (h.modelName) models.add(h.modelName);
+    });
+    return Array.from(models);
+  }, [history]);
+
+  // Use filtered history if filters are active, otherwise use all history
+  const displayHistory = Object.keys(filters).length > 0 ? filteredHistory : history;
 
   if (loading) {
     return (
@@ -282,10 +347,43 @@ export default function SessionAnalytics() {
           )}
 
           {activeTab === 'history' && (
-            <GenerationHistoryList
-              history={history}
-              onFeedbackSubmit={handleFeedbackSubmit}
-            />
+            <div className="space-y-6">
+              {/* Export CSV Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleExportCSV}
+                  disabled={exportingCSV}
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <FileDown className="w-4 h-4" />
+                  <span>{exportingCSV ? 'Exporting...' : 'Export CSV'}</span>
+                </button>
+              </div>
+
+              {/* Filters */}
+              <HistoryFilters
+                onFilterChange={handleFilterChange}
+                availableModels={availableModels}
+              />
+
+              {/* History List */}
+              <GenerationHistoryList
+                history={displayHistory}
+                onFeedbackSubmit={handleFeedbackSubmit}
+              />
+
+              {displayHistory.length === 0 && (
+                <div className="bg-gray-900 rounded-lg p-8 text-center">
+                  <p className="text-gray-400">No generations match your filters</p>
+                  <button
+                    onClick={() => setFilters({})}
+                    className="mt-4 text-sm text-purple-400 hover:text-purple-300"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

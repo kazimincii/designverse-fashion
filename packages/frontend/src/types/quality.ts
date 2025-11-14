@@ -103,3 +103,20 @@ export interface FeedbackRequest {
   feedback?: string;
   issues?: string[];
 }
+
+export interface GlobalAnalytics {
+  totalSessions: number;
+  totalGenerations: number;
+  averageConsistencyScore: number;
+  averageFaceScore: number;
+  averageGarmentScore: number;
+  averageStyleScore: number;
+  successRate: number;
+  regenerationRate: number;
+  totalCost: number;
+  topPerformingModels: Array<{ model: string; averageScore: number; usageCount: number }>;
+  mostUsedModels: Array<{ model: string; usageCount: number; averageScore: number }>;
+  commonIssues: Array<{ issue: string; count: number }>;
+  qualityDistribution: { excellent: number; good: number; fair: number; poor: number };
+  timeSeriesData: Array<{ date: string; count: number; avgScore: number }>;
+}
