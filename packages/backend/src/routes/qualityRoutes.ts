@@ -34,7 +34,7 @@ router.get('/sessions/:sessionId/history', authenticate, cacheMiddleware(120, 'q
 // Submit feedback for a specific generation
 router.post('/history/:historyId/feedback', authenticate, submitGenerationFeedback);
 
-// Global analytics (admin)
-router.get('/analytics/global', authenticate, getGlobalQualityAnalytics);
+// Global analytics (cache for 15 minutes)
+router.get('/analytics/global', authenticate, cacheMiddleware(900, 'quality:global'), getGlobalQualityAnalytics);
 
 export default router;
