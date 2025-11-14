@@ -30,6 +30,9 @@ import CreateReferencePage from './pages/CreateReferencePage';
 import SessionAnalytics from './pages/SessionAnalytics';
 import GlobalAnalytics from './pages/GlobalAnalytics';
 
+// Settings
+import SettingsPage from './pages/SettingsPage';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -109,6 +112,9 @@ function App() {
             {/* Quality Analytics */}
             <Route path="/analytics/:sessionId" element={<ProtectedRoute><SessionAnalytics /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><GlobalAnalytics /></ProtectedRoute>} />
+
+            {/* Settings */}
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             </Routes>
           </Router>
           <Toaster position="top-right" />

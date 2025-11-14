@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Video, Clock, Eye, Heart, Camera, BarChart3 } from 'lucide-react';
+import { Plus, Video, Clock, Eye, Heart, Camera, BarChart3, Settings } from 'lucide-react';
 import { storyApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -59,6 +59,13 @@ export default function WorkspacePage() {
               </Link>
               <div className="flex items-center space-x-3">
                 <NotificationIndicator />
+                <Link
+                  to="/settings"
+                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </Link>
                 <span className="text-sm text-gray-400">
                   {user?.creditsBalance} credits
                 </span>

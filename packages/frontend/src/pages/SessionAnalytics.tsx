@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, Download, TrendingUp, FileDown } from 'lucide-react';
 import { qualityApi } from '../services/api';
+import toast from 'react-hot-toast';
 import QualityMetricsCard from '../components/QualityMetricsCard';
 import QualityReportView from '../components/QualityReportView';
 import GenerationHistoryList from '../components/GenerationHistoryList';
@@ -25,6 +26,11 @@ export default function SessionAnalytics() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [exportingCSV, setExportingCSV] = useState(false);
+  // TODO: Add batch regeneration UI
+  // const [batchRegenerating, setBatchRegenerating] = useState(false);
+  // const [showBatchModal, setShowBatchModal] = useState(false);
+  const [batchThreshold] = useState(70);
+  const [batchMaxCount] = useState(10);
 
   useEffect(() => {
     if (sessionId) {
@@ -169,6 +175,36 @@ export default function SessionAnalytics() {
   // Use filtered history if filters are active, otherwise use all history
   const displayHistory = Object.keys(filters).length > 0 ? filteredHistory : history;
 
+  // Batch regeneration handler - TODO: Add full UI with modal
+  const handleBatchRegenerate = async () => {
+    if (!sessionId) return;
+
+    const confirmed = window.confirm(
+      `This will regenerate all images with quality scores below ${batchThreshold}. Continue?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await qualityApi.batchRegenerate(sessionId, {
+        threshold: batchThreshold,
+        maxRegenerations: batchMaxCount,
+      });
+
+      const { count } = response.data.data;
+
+      if (count === 0) {
+        toast('No low quality generations found!', { icon: 'ℹ️' });
+      } else {
+        toast.success(`Queued ${count} generation${count > 1 ? 's' : ''} for improvement!`);
+        // Refresh data after a short delay
+        setTimeout(() => handleRefresh(), 2000);
+      }
+    } catch (err: any) {
+      console.error('Failed to batch regenerate:', err);
+      toast.error(err.response?.data?.error || 'Failed to start batch regeneration');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white p-6">
@@ -287,6 +323,26 @@ export default function SessionAnalytics() {
           {activeTab === 'overview' && metrics && (
             <div className="space-y-6">
               <QualityMetricsCard metrics={metrics} />
+
+              {/* Batch Regeneration - Quick Action */}
+              {metrics.averageConsistencyScore < 80 && (
+                <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-orange-500/50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-orange-400">Low Quality Detected</h4>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Some generations are below quality threshold. Regenerate them automatically.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleBatchRegenerate}
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg font-medium transition-colors whitespace-nowrap"
+                    >
+                      Batch Regenerate
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Quick Insights */}
               {report && report.recommendations.length > 0 && (
