@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Sparkles, Wand2, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Sparkles, Wand2, Loader2, CheckCircle } from 'lucide-react';
 import { aiApi } from '../services/aiApi';
 import toast from 'react-hot-toast';
 

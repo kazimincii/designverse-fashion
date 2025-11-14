@@ -237,7 +237,7 @@ export const getFeed = async (req: AuthRequest, res: Response) => {
       });
 
       where.ownerId = {
-        in: following.map((f) => f.followedId),
+        in: following.map((f: any) => f.followedId),
       };
     }
 

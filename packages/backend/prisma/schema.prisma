@@ -65,19 +65,19 @@ enum NotificationType {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String?
-  authProvider  String?  @default("email")
-  displayName   String
-  handle        String   @unique
-  bio           String?
-  avatarUrl     String?
-  planType      PlanType @default(FREE)
-  creditsBalance Int     @default(100)
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String?
+  authProvider   String?  @default("email")
+  displayName    String
+  handle         String   @unique
+  bio            String?
+  avatarUrl      String?
+  planType       PlanType @default(FREE)
+  creditsBalance Int      @default(100)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   stories       Story[]
@@ -86,8 +86,8 @@ model User {
   jobs          Job[]
   likes         Like[]
   comments      Comment[]
-  followers     Follow[] @relation("Followers")
-  following     Follow[] @relation("Following")
+  followers     Follow[]       @relation("Followers")
+  following     Follow[]       @relation("Following")
   notifications Notification[]
   photoSessions PhotoSession[]
 
@@ -96,28 +96,28 @@ model User {
 }
 
 model Story {
-  id                  String      @id @default(cuid())
-  ownerId             String
-  title               String
-  description         String?
-  status              StoryStatus @default(DRAFT)
-  privacy             Privacy     @default(UNLISTED)
-  coverClipId         String?
+  id                   String      @id @default(cuid())
+  ownerId              String
+  title                String
+  description          String?
+  status               StoryStatus @default(DRAFT)
+  privacy              Privacy     @default(UNLISTED)
+  coverClipId          String?
   totalDurationSeconds Float?
-  publishedAt         DateTime?
-  viewCount           Int         @default(0)
+  publishedAt          DateTime?
+  viewCount            Int         @default(0)
 
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  owner               User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  clips               Clip[]
-  textOverlays        TextOverlay[]
-  audioTracks         AudioTrack[]
-  storyFolders        StoryFolder[]
-  likes               Like[]
-  comments            Comment[]
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  clips        Clip[]
+  textOverlays TextOverlay[]
+  audioTracks  AudioTrack[]
+  storyFolders StoryFolder[]
+  likes        Like[]
+  comments     Comment[]
 
   @@index([ownerId])
   @@index([status])
@@ -126,95 +126,95 @@ model Story {
 }
 
 model Clip {
-  id            String      @id @default(cuid())
-  storyId       String
-  orderIndex    Int
-  sourceType    SourceType
-  inputPrompt   String?
-  modelProvider String?
-  modelName     String?
-  videoUrl      String
-  thumbnailUrl  String?
+  id              String     @id @default(cuid())
+  storyId         String
+  orderIndex      Int
+  sourceType      SourceType
+  inputPrompt     String?
+  modelProvider   String?
+  modelName       String?
+  videoUrl        String
+  thumbnailUrl    String?
   durationSeconds Float
-  metadata      Json?
+  metadata        Json?
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  story         Story       @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  textOverlays  TextOverlay[]
+  story        Story         @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  textOverlays TextOverlay[]
 
   @@index([storyId])
 }
 
 model TextOverlay {
-  id         String   @id @default(cuid())
-  storyId    String
-  clipId     String?
-  startTime  Float
-  endTime    Float
-  content    String
-  position   String   @default("center")
-  styleJson  Json?
+  id        String  @id @default(cuid())
+  storyId   String
+  clipId    String?
+  startTime Float
+  endTime   Float
+  content   String
+  position  String  @default("center")
+  styleJson Json?
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  story      Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  clip       Clip?    @relation(fields: [clipId], references: [id], onDelete: SetNull)
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  clip  Clip? @relation(fields: [clipId], references: [id], onDelete: SetNull)
 
   @@index([storyId])
 }
 
 model AudioTrack {
-  id         String   @id @default(cuid())
+  id         String @id @default(cuid())
   storyId    String
-  type       String   @default("music")
+  type       String @default("music")
   sourceType String
   audioUrl   String
   startTime  Float
   endTime    Float
-  volume     Float    @default(1.0)
+  volume     Float  @default(1.0)
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  story      Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
   @@index([storyId])
 }
 
 model Folder {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   ownerId        String
   name           String
   parentFolderId String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  parentFolder   Folder?  @relation("FolderHierarchy", fields: [parentFolderId], references: [id])
-  childFolders   Folder[] @relation("FolderHierarchy")
-  storyFolders   StoryFolder[]
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parentFolder Folder?       @relation("FolderHierarchy", fields: [parentFolderId], references: [id])
+  childFolders Folder[]      @relation("FolderHierarchy")
+  storyFolders StoryFolder[]
 
   @@index([ownerId])
 }
 
 model StoryFolder {
-  id        String   @id @default(cuid())
-  storyId   String
-  folderId  String
+  id       String @id @default(cuid())
+  storyId  String
+  folderId String
 
   createdAt DateTime @default(now())
 
   // Relations
-  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  story  Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
 
   @@unique([storyId, folderId])
   @@index([storyId])
@@ -230,10 +230,10 @@ model Asset {
   tags         String[]
   metadataJson Json?
 
-  createdAt    DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  owner        User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   @@index([ownerId])
   @@index([type])
@@ -249,27 +249,27 @@ model Job {
   modelProvider     String?
   errorMessage      String?
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  owner             User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  photoAssets       PhotoAsset[]
+  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photoAssets PhotoAsset[]
 
   @@index([ownerId])
   @@index([status])
 }
 
 model Like {
-  id        String   @id @default(cuid())
-  userId    String
-  storyId   String
+  id      String @id @default(cuid())
+  userId  String
+  storyId String
 
   createdAt DateTime @default(now())
 
   // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, storyId])
   @@index([userId])
@@ -277,35 +277,35 @@ model Like {
 }
 
 model Comment {
-  id              String    @id @default(cuid())
+  id              String  @id @default(cuid())
   storyId         String
   authorId        String
   parentCommentId String?
   content         String
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  story           Story     @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
-  replies         Comment[] @relation("CommentReplies")
+  story         Story     @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentComment Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies       Comment[] @relation("CommentReplies")
 
   @@index([storyId])
   @@index([authorId])
 }
 
 model Follow {
-  id             String   @id @default(cuid())
-  followerId     String
-  followedId     String
+  id         String @id @default(cuid())
+  followerId String
+  followedId String
 
-  createdAt      DateTime @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  follower       User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
-  followed       User     @relation("Followers", fields: [followedId], references: [id], onDelete: Cascade)
+  follower User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("Followers", fields: [followedId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followedId])
   @@index([followerId])
@@ -319,10 +319,10 @@ model Notification {
   payloadJson Json
   readAt      DateTime?
 
-  createdAt   DateTime         @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([readAt])
@@ -353,40 +353,44 @@ enum AnimationStyle {
 }
 
 model PhotoSession {
-  id          String             @id @default(cuid())
-  ownerId     String
-  title       String
-  status      PhotoSessionStatus @default(DRAFT)
+  id      String             @id @default(cuid())
+  ownerId String
+  title   String
+  status  PhotoSessionStatus @default(DRAFT)
 
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  owner       User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  photoAssets PhotoAsset[]
-  photoAnimations PhotoAnimation[]
+  owner                User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  photoAssets          PhotoAsset[]
+  photoAnimations      PhotoAnimation[]
+  characterReferences  CharacterReference[]
+  garmentReferences    GarmentReference[]
+  styleReferences      StyleReference[]
+  generationHistories  GenerationHistory[]
 
   @@index([ownerId])
   @@index([status])
 }
 
 model PhotoAsset {
-  id            String            @id @default(cuid())
-  sessionId     String
-  type          AssetType
-  subType       PhotoAssetSubType
-  sourceType    SourceType
-  url           String
-  resolutionW   Int?
-  resolutionH   Int?
-  relatedJobId  String?
-  metadataJson  Json?
+  id           String            @id @default(cuid())
+  sessionId    String
+  type         AssetType
+  subType      PhotoAssetSubType
+  sourceType   SourceType
+  url          String
+  resolutionW  Int?
+  resolutionH  Int?
+  relatedJobId String?
+  metadataJson Json?
 
-  createdAt     DateTime          @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  session       PhotoSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  relatedJob    Job?              @relation(fields: [relatedJobId], references: [id], onDelete: SetNull)
+  session    PhotoSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  relatedJob Job?         @relation(fields: [relatedJobId], references: [id], onDelete: SetNull)
 
   @@index([sessionId])
   @@index([subType])
@@ -403,10 +407,215 @@ model PhotoAnimation {
   style           AnimationStyle
   sourceAssetIds  String[]
 
-  createdAt       DateTime       @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  session         PhotoSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session PhotoSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
+}
+
+// ============================================================
+// CONSISTENCY & REFERENCE SYSTEM
+// ============================================================
+
+enum ReferenceType {
+  CHARACTER
+  GARMENT
+  STYLE
+  LOCATION
+  LIGHTING
+  MOOD
+}
+
+// Character reference for consistent face/body across generations
+model CharacterReference {
+  id              String  @id @default(cuid())
+  sessionId       String
+  name            String  // e.g., "Model A", "Main Character"
+  description     String?
+  faceImageUrl    String  // Primary face reference image
+  bodyImageUrl    String? // Full body reference (optional)
+  thumbnailUrl    String? // Thumbnail for UI
+
+  // AI Embeddings & Metadata
+  faceEmbedding   Json?   // Face recognition embedding (e.g., InsightFace)
+  visualFeatures  Json?   // Hair color, eye color, skin tone, etc.
+  metadataJson    Json?   // Additional metadata
+
+  isActive        Boolean @default(true)
+  usageCount      Int     @default(0) // Track how many times used
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session             PhotoSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  generationHistories GenerationHistory[]
+
+  @@index([sessionId])
+  @@index([isActive])
+}
+
+// Garment/outfit reference for consistent clothing across generations
+model GarmentReference {
+  id                 String   @id @default(cuid())
+  sessionId          String
+  name               String   // e.g., "Red Dress", "Black Jacket"
+  description        String?
+  referenceImageUrl  String   // Primary garment reference image
+  thumbnailUrl       String?
+
+  // Garment Properties
+  category           String   // "dress", "jacket", "pants", "shoes", etc.
+  colorPalette       String[] // ["#FF0000", "#8B0000"] - main colors
+  colorNames         String[] // ["Red", "Burgundy"] - human readable
+  primaryColor       String?  // Dominant color
+
+  // AI Embeddings & Metadata
+  garmentEmbedding   Json?    // Visual embedding for garment matching
+  fabricTexture      String?  // "silk", "cotton", "leather", etc.
+  pattern            String?  // "solid", "stripes", "floral", etc.
+  style              String?  // "casual", "formal", "sporty", etc.
+  metadataJson       Json?
+
+  isActive           Boolean  @default(true)
+  usageCount         Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session             PhotoSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  generationHistories GenerationHistory[]
+
+  @@index([sessionId])
+  @@index([category])
+  @@index([isActive])
+}
+
+// Style/Scene reference for consistent environment/mood/lighting
+model StyleReference {
+  id                String        @id @default(cuid())
+  sessionId         String
+  type              ReferenceType // STYLE, LOCATION, LIGHTING, MOOD
+  name              String        // e.g., "Studio Lighting", "Urban Street"
+  description       String?
+  referenceImageUrl String?       // Optional reference image
+  thumbnailUrl      String?
+
+  // Prompt Engineering
+  promptTemplate    String        // Consistency-enhancing prompt fragment
+  negativePrompt    String?       // What to avoid
+
+  // Style Parameters
+  styleEmbedding    Json?         // CLIP or similar style embedding
+  colorPalette      String[]      // Color scheme for scene
+  lightingSetup     String?       // "soft", "dramatic", "high-key", "natural"
+  mood              String?       // "minimalist", "dramatic", "playful"
+  cameraAngle       String?       // "eye-level", "high-angle", "low-angle"
+
+  // AI Model Parameters
+  modelParameters   Json?         // Model-specific parameters for consistency
+  metadataJson      Json?
+
+  isActive          Boolean       @default(true)
+  usageCount        Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session             PhotoSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  generationHistories GenerationHistory[]
+
+  @@index([sessionId])
+  @@index([type])
+  @@index([isActive])
+}
+
+// Track each generation with its references and quality metrics
+model GenerationHistory {
+  id                String  @id @default(cuid())
+  sessionId         String
+  generatedAssetId  String  // Reference to PhotoAsset
+  jobId             String? // Reference to Job if applicable
+
+  // References Used
+  characterRefId    String?
+  garmentRefId      String?
+  styleRefId        String?
+
+  // Generation Details
+  stepNumber        Int     // Which step in the workflow (1-5)
+  basePrompt        String  // Original user prompt
+  enhancedPrompt    String  // AI-enhanced prompt with references
+  negativePrompt    String?
+
+  // Quality Metrics
+  consistencyScore  Float?  // Overall consistency score (0-100)
+  faceSimScore      Float?  // Face similarity score (0-100)
+  garmentAccScore   Float?  // Garment accuracy score (0-100)
+  styleMatchScore   Float?  // Style matching score (0-100)
+
+  // AI Model Info
+  modelProvider     String? // "replicate", "openai", "midjourney"
+  modelName         String? // Specific model used
+  modelVersion      String?
+
+  // Performance
+  processingTimeMs  Int?    // Generation time in milliseconds
+  apiCostUsd        Float?  // API cost in USD
+
+  // Status
+  wasRegenerated    Boolean @default(false) // If this replaced a low-quality generation
+  userRating        Int?    // User satisfaction rating (1-5)
+  userFeedback      String? // User comments
+
+  metadataJson      Json?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  session      PhotoSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  characterRef CharacterReference?   @relation(fields: [characterRefId], references: [id], onDelete: SetNull)
+  garmentRef   GarmentReference?     @relation(fields: [garmentRefId], references: [id], onDelete: SetNull)
+  styleRef     StyleReference?       @relation(fields: [styleRefId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([generatedAssetId])
+  @@index([characterRefId])
+  @@index([garmentRefId])
+  @@index([styleRefId])
+  @@index([consistencyScore])
+  @@index([createdAt])
+}
+
+// Preset reference collections (reusable templates)
+model ReferencePreset {
+  id                 String  @id @default(cuid())
+  creatorId          String  // User who created this preset
+  name               String
+  description        String?
+  category           String  // "fashion", "editorial", "lifestyle", etc.
+  thumbnailUrl       String?
+
+  // Preset Data (JSON containing reference configs)
+  presetData         Json    // Contains character, garment, style configs
+
+  // Usage & Popularity
+  isPublic           Boolean @default(false)
+  usageCount         Int     @default(0)
+  averageRating      Float?
+
+  // Tags for discovery
+  tags               String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([category])
+  @@index([isPublic])
+  @@index([usageCount])
 }

@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
 import { connectDatabase, prisma } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import rateLimit from 'express-rate-limit';
@@ -16,9 +17,13 @@ import aiRoutes from './routes/aiRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import templateRoutes from './routes/templateRoutes';
 import photoSessionRoutes from './routes/photoSessionRoutes';
+import referenceRoutes from './routes/referenceRoutes';
+import qualityRoutes from './routes/qualityRoutes';
+import webhookRoutes from './routes/webhookRoutes';
 
-// Import worker (starts processing queue)
+// Import workers (starts processing queues)
 import './workers/videoGenerationWorker';
+import './workers/photoSessionWorker';
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +50,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api/', limiter);
 
+// Static file serving for uploads
+const LOCAL_STORAGE_PATH = process.env.LOCAL_STORAGE_PATH || '/tmp/uploads';
+app.use('/uploads', express.static(LOCAL_STORAGE_PATH));
+
 // Health check
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -59,6 +68,9 @@ app.use('/api/ai', aiRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', templateRoutes);
 app.use('/api/photo', photoSessionRoutes);
+app.use('/api/references', referenceRoutes);
+app.use('/api/quality', qualityRoutes);
+app.use('/webhooks', webhookRoutes); // No /api prefix for webhooks
 
 // 404 handler
 app.use((req: Request, res: Response) => {

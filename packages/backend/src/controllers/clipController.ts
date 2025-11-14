@@ -47,7 +47,7 @@ export const createClip = async (req: AuthRequest, res: Response) => {
     const clips = await prisma.clip.findMany({
       where: { storyId },
     });
-    const totalDuration = clips.reduce((sum, c) => sum + c.durationSeconds, 0);
+    const totalDuration = clips.reduce((sum: number, c: any) => sum + c.durationSeconds, 0);
 
     await prisma.story.update({
       where: { id: storyId },
@@ -122,7 +122,7 @@ export const deleteClip = async (req: AuthRequest, res: Response) => {
     const clips = await prisma.clip.findMany({
       where: { storyId: clip.storyId },
     });
-    const totalDuration = clips.reduce((sum, c) => sum + c.durationSeconds, 0);
+    const totalDuration = clips.reduce((sum: number, c: any) => sum + c.durationSeconds, 0);
 
     await prisma.story.update({
       where: { id: clip.storyId },

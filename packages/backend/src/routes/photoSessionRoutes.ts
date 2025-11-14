@@ -14,6 +14,11 @@ import {
 import { authenticate } from '../middleware/auth';
 import { uploadMiddleware } from '../controllers/uploadController';
 import { validate } from '../middleware/validation';
+import {
+  aiGenerationLimiter,
+  uploadLimiter,
+  readLimiter,
+} from '../middleware/advancedRateLimit';
 
 const router = Router();
 
@@ -25,24 +30,25 @@ router.post(
   createPhotoSession
 );
 
-router.get('/sessions', authenticate, getUserPhotoSessions);
-router.get('/sessions/:id', authenticate, getPhotoSession);
+router.get('/sessions', authenticate, readLimiter, getUserPhotoSessions);
+router.get('/sessions/:id', authenticate, readLimiter, getPhotoSession);
 router.delete('/sessions/:id', authenticate, deletePhotoSession);
 
 // Step 1: Upload
 router.post(
-  '/sessions/upload',
+  '/sessions/:sessionId/upload',
   authenticate,
+  uploadLimiter,
   uploadMiddleware,
   uploadPhoto
 );
 
-// Step 2: Virtual try-on
+// Step 2: Virtual try-on (AI generation - strict limit)
 router.post(
-  '/sessions/try-on',
+  '/sessions/:sessionId/try-on',
   authenticate,
+  aiGenerationLimiter,
   [
-    body('sessionId').notEmpty(),
     body('productAssetId').notEmpty(),
     body('modelAssetId').notEmpty(),
     validate,
@@ -50,12 +56,12 @@ router.post(
   applyVirtualTryOn
 );
 
-// Step 3: Generate variations
+// Step 3: Generate variations (AI generation - strict limit)
 router.post(
-  '/sessions/variations',
+  '/sessions/:sessionId/variations',
   authenticate,
+  aiGenerationLimiter,
   [
-    body('sessionId').notEmpty(),
     body('baseAssetId').notEmpty(),
     body('mood').optional().isIn(['minimalist', 'dynamic', 'dramatic']),
     body('framing').optional(),
@@ -67,10 +73,9 @@ router.post(
 
 // Step 4: Upscale
 router.post(
-  '/sessions/upscale',
+  '/sessions/:sessionId/upscale',
   authenticate,
   [
-    body('sessionId').notEmpty(),
     body('assetId').notEmpty(),
     body('factor').isInt({ min: 2, max: 4 }),
     validate,
@@ -80,10 +85,9 @@ router.post(
 
 // Step 5: Create animation
 router.post(
-  '/sessions/animate',
+  '/sessions/:sessionId/animate',
   authenticate,
   [
-    body('sessionId').notEmpty(),
     body('assetIds').isArray({ min: 1 }),
     body('duration').optional().isInt({ min: 5, max: 10 }),
     body('style').optional().isIn(['SUBTLE_CINEMATIC', 'LOOKBOOK', 'DYNAMIC']),

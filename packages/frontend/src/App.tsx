@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { PhotoSessionProvider } from './contexts/PhotoSessionContext';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -12,7 +13,20 @@ import StoryEditorPage from './pages/StoryEditorPage';
 import StoryViewPage from './pages/StoryViewPage';
 import ProfilePage from './pages/ProfilePage';
 import FeedPage from './pages/FeedPage';
-import PremiumPhotoPage from './pages/PremiumPhotoPage';
+
+// Premium Photo Steps
+import UploadStep from './pages/premium-photo/UploadStep';
+import EnhanceStep from './pages/premium-photo/EnhanceStep';
+import VariationsStep from './pages/premium-photo/VariationsStep';
+import UpscaleStep from './pages/premium-photo/UpscaleStep';
+import AnimateStep from './pages/premium-photo/AnimateStep';
+
+// Reference Management
+import ReferenceManagementPage from './pages/ReferenceManagementPage';
+import CreateReferencePage from './pages/CreateReferencePage';
+
+// Quality Analytics
+import SessionAnalytics from './pages/SessionAnalytics';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,7 +90,21 @@ function App() {
             {/* Protected Routes */}
             <Route path="/workspace" element={<ProtectedRoute><WorkspacePage /></ProtectedRoute>} />
             <Route path="/editor/:storyId?" element={<ProtectedRoute><StoryEditorPage /></ProtectedRoute>} />
-            <Route path="/premium-photo" element={<ProtectedRoute><PremiumPhotoPage /></ProtectedRoute>} />
+
+            {/* Premium Photo Mode - Multi-step Workflow */}
+            <Route path="/premium-photo" element={<ProtectedRoute><PhotoSessionProvider><Navigate to="/premium-photo/upload" replace /></PhotoSessionProvider></ProtectedRoute>} />
+            <Route path="/premium-photo/upload" element={<ProtectedRoute><PhotoSessionProvider><UploadStep /></PhotoSessionProvider></ProtectedRoute>} />
+            <Route path="/premium-photo/enhance" element={<ProtectedRoute><PhotoSessionProvider><EnhanceStep /></PhotoSessionProvider></ProtectedRoute>} />
+            <Route path="/premium-photo/variations" element={<ProtectedRoute><PhotoSessionProvider><VariationsStep /></PhotoSessionProvider></ProtectedRoute>} />
+            <Route path="/premium-photo/upscale" element={<ProtectedRoute><PhotoSessionProvider><UpscaleStep /></PhotoSessionProvider></ProtectedRoute>} />
+            <Route path="/premium-photo/animate" element={<ProtectedRoute><PhotoSessionProvider><AnimateStep /></PhotoSessionProvider></ProtectedRoute>} />
+
+            {/* Reference Management */}
+            <Route path="/references/manage" element={<ProtectedRoute><PhotoSessionProvider><ReferenceManagementPage /></PhotoSessionProvider></ProtectedRoute>} />
+            <Route path="/references/create" element={<ProtectedRoute><PhotoSessionProvider><CreateReferencePage /></PhotoSessionProvider></ProtectedRoute>} />
+
+            {/* Quality Analytics */}
+            <Route path="/analytics/:sessionId" element={<ProtectedRoute><SessionAnalytics /></ProtectedRoute>} />
           </Routes>
         </Router>
         <Toaster position="top-right" />

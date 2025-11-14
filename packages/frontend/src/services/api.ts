@@ -1,4 +1,13 @@
 import axios from 'axios';
+import type {
+  CreateCharacterRefRequest,
+  CreateGarmentRefRequest,
+  CreateStyleRefRequest,
+  UpdateCharacterRefRequest,
+  UpdateGarmentRefRequest,
+  UpdateStyleRefRequest,
+  UpdateGenerationFeedbackRequest,
+} from '../types/reference';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -96,12 +105,184 @@ export const photoSessionApi = {
       },
     });
   },
-  applyVirtualTryOn: (sessionId: string, data: { productAssetId: string; modelAssetId: string }) =>
-    api.post(`/photo/sessions/${sessionId}/try-on`, data),
+  applyVirtualTryOn: (
+    sessionId: string,
+    data: {
+      productAssetId: string;
+      modelAssetId: string;
+      characterRefId?: string;
+      garmentRefId?: string;
+      styleRefId?: string;
+      style?: string;
+      lighting?: string;
+      mood?: string;
+    }
+  ) => api.post(`/photo/sessions/${sessionId}/try-on`, data),
   generateVariations: (sessionId: string, data: { baseAssetId: string; mood?: string; framing?: string; count?: number }) =>
     api.post(`/photo/sessions/${sessionId}/variations`, data),
   upscaleImage: (sessionId: string, data: { assetId: string; factor?: number }) =>
     api.post(`/photo/sessions/${sessionId}/upscale`, data),
   createAnimation: (sessionId: string, data: { assetIds: string[]; duration?: number; style?: string }) =>
     api.post(`/photo/sessions/${sessionId}/animate`, data),
+};
+
+// Reference API
+export const referenceApi = {
+  // ============================================================
+  // CHARACTER REFERENCE
+  // ============================================================
+
+  createCharacter: (data: CreateCharacterRefRequest) => {
+    const formData = new FormData();
+    formData.append('sessionId', data.sessionId);
+    formData.append('name', data.name);
+    if (data.description) formData.append('description', data.description);
+    formData.append('image', data.image);
+
+    return api.post('/references/character', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  getCharacters: (sessionId: string, activeOnly = false) =>
+    api.get(`/references/character/session/${sessionId}`, {
+      params: { activeOnly },
+    }),
+
+  getCharacter: (id: string) =>
+    api.get(`/references/character/${id}`),
+
+  updateCharacter: (id: string, data: UpdateCharacterRefRequest) =>
+    api.put(`/references/character/${id}`, data),
+
+  deleteCharacter: (id: string) =>
+    api.delete(`/references/character/${id}`),
+
+  // ============================================================
+  // GARMENT REFERENCE
+  // ============================================================
+
+  createGarment: (data: CreateGarmentRefRequest) => {
+    const formData = new FormData();
+    formData.append('sessionId', data.sessionId);
+    formData.append('name', data.name);
+    if (data.description) formData.append('description', data.description);
+    if (data.category) formData.append('category', data.category);
+    formData.append('image', data.image);
+
+    return api.post('/references/garment', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  getGarments: (sessionId: string, activeOnly = false) =>
+    api.get(`/references/garment/session/${sessionId}`, {
+      params: { activeOnly },
+    }),
+
+  updateGarment: (id: string, data: UpdateGarmentRefRequest) =>
+    api.put(`/references/garment/${id}`, data),
+
+  deleteGarment: (id: string) =>
+    api.delete(`/references/garment/${id}`),
+
+  // ============================================================
+  // STYLE REFERENCE
+  // ============================================================
+
+  createStyle: (data: CreateStyleRefRequest) => {
+    const formData = new FormData();
+    formData.append('sessionId', data.sessionId);
+    formData.append('type', data.type);
+    formData.append('name', data.name);
+    if (data.description) formData.append('description', data.description);
+    formData.append('promptTemplate', data.promptTemplate);
+    if (data.negativePrompt) formData.append('negativePrompt', data.negativePrompt);
+    if (data.lightingSetup) formData.append('lightingSetup', data.lightingSetup);
+    if (data.mood) formData.append('mood', data.mood);
+    if (data.cameraAngle) formData.append('cameraAngle', data.cameraAngle);
+    if (data.image) formData.append('image', data.image);
+
+    return api.post('/references/style', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  getStyles: (sessionId: string, type?: string, activeOnly = false) =>
+    api.get(`/references/style/session/${sessionId}`, {
+      params: { type, activeOnly },
+    }),
+
+  updateStyle: (id: string, data: UpdateStyleRefRequest) =>
+    api.put(`/references/style/${id}`, data),
+
+  deleteStyle: (id: string) =>
+    api.delete(`/references/style/${id}`),
+
+  // ============================================================
+  // COMBINED & UTILITY
+  // ============================================================
+
+  autoExtract: (image: File) => {
+    const formData = new FormData();
+    formData.append('image', image);
+
+    return api.post('/references/auto-extract', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  getSessionReferences: (sessionId: string, activeOnly = false) =>
+    api.get(`/references/session/${sessionId}`, {
+      params: { activeOnly },
+    }),
+
+  getSessionStats: (sessionId: string) =>
+    api.get(`/references/session/${sessionId}/stats`),
+
+  // ============================================================
+  // GENERATION HISTORY & ANALYTICS
+  // ============================================================
+
+  getGenerationHistory: (sessionId: string, limit = 50) =>
+    api.get(`/references/session/${sessionId}/history`, {
+      params: { limit },
+    }),
+
+  getGenerationAnalytics: (sessionId: string) =>
+    api.get(`/references/session/${sessionId}/analytics`),
+
+  updateGenerationFeedback: (historyId: string, data: UpdateGenerationFeedbackRequest) =>
+    api.put(`/references/history/${historyId}/feedback`, data),
+};
+
+// Quality Metrics & Analytics API
+export const qualityApi = {
+  // Get quality metrics for a session
+  getSessionMetrics: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/metrics`),
+
+  // Get comprehensive quality report
+  getSessionReport: (sessionId: string) =>
+    api.get(`/quality/sessions/${sessionId}/report`),
+
+  // Get generation analysis
+  getGenerationAnalysis: (sessionId: string, referenceType?: 'character' | 'garment' | 'style') =>
+    api.get(`/quality/sessions/${sessionId}/analysis`, {
+      params: referenceType ? { referenceType } : {},
+    }),
+
+  // Get generation history
+  getGenerationHistory: (sessionId: string, limit = 50) =>
+    api.get(`/quality/sessions/${sessionId}/history`, {
+      params: { limit },
+    }),
+
+  // Submit feedback for a generation
+  submitFeedback: (historyId: string, data: { rating: number; feedback?: string; issues?: string[] }) =>
+    api.post(`/quality/history/${historyId}/feedback`, data),
+
+  // Get global analytics (admin)
+  getGlobalAnalytics: (params?: { startDate?: string; endDate?: string; minGenerations?: number }) =>
+    api.get('/quality/analytics/global', { params }),
 };

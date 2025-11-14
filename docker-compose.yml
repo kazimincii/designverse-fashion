@@ -44,6 +44,7 @@ services:
     volumes:
       - ./packages/backend:/app
       - /app/node_modules
+      - backend_uploads:/tmp/uploads
 
   frontend:
     build:
@@ -62,6 +63,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  backend_uploads:
 
 networks:
   nim-network:
