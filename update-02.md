@@ -113,12 +113,19 @@ if (hasAIKeys) {
 
 **Mevcut Konfigürasyon:**
 ```env
+claude/github-repository-work-011CV5g2vMjrV3JUubTibqqL
 OPENAI_API_KEY=[REMOVED FOR SECURITY]
 REPLICATE_API_KEY=[REMOVED FOR SECURITY]
 ```
 
 **Note:** API keys have been removed from this documentation for security reasons. Please set your own API keys in the `.env` file.
 
+
+OPENAI_API_KEY=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
+REPLICATE_API_KEY=r8_ToFxmqkmUGGsamze0CzhW7pslIqb1ld1Yoydh
+```
+
+main
 ### 6. Mock Video Dosyası Oluşturuldu
 **Komut:**
 ```bash
