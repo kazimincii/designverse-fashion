@@ -45,3 +45,5 @@ temp/
 
 # Prisma
 packages/backend/prisma/migrations/
+*.backup
+*.bak
