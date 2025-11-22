@@ -5,9 +5,12 @@ import { CharacterConsistencyService } from './characterConsistencyService';
 import { GarmentConsistencyService } from './garmentConsistencyService';
 import { StyleConsistencyService } from './styleConsistencyService';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI only if API key is provided
+const openai = process.env.OPENAI_API_KEY 
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  : null;
 
 const REPLICATE_API_KEY = process.env.REPLICATE_API_KEY;
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
@@ -248,8 +251,12 @@ export class AIConsistencyEngine {
   private static async generateStandard(
     params: ConsistencyGenerationParams
   ): Promise<GenerationResult> {
+    if (!openai) {
+      throw new Error('OpenAI API key not configured. Cannot generate image.');
+    }
+
     try {
-      const imageResponse = await openai.images.generate({
+      const imageResponse = await openai!.images.generate({
         model: 'dall-e-3',
         prompt: params.prompt,
         size: '1024x1024',

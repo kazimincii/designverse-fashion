@@ -102,11 +102,17 @@ export const getUploadUrl = async (req: AuthRequest, res: Response) => {
       throw new AppError('Filename and content type are required', 400);
     }
 
-    const { uploadUrl, fileUrl, key } = await storageService.getUploadUrl(
+    const result = await storageService.getUploadUrl(
       filename,
       contentType,
       folder
     );
+
+    if (!result) {
+      throw new AppError('Presigned URLs not available (S3 not configured)', 400);
+    }
+
+    const { uploadUrl, fileUrl, key } = result;
 
     res.json({
       success: true,

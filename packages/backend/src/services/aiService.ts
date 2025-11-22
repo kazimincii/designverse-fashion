@@ -1,9 +1,12 @@
 import axios from 'axios';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI only if API key is provided
+const openai = process.env.OPENAI_API_KEY 
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  : null;
 
 const REPLICATE_API_KEY = process.env.REPLICATE_API_KEY;
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
@@ -25,8 +28,14 @@ interface ImageToVideoParams {
 export const aiService = {
   // Enhance user's prompt using GPT-4
   async enhancePrompt(userPrompt: string): Promise<string[]> {
+    // If no OpenAI key, return the original prompt
+    if (!openai) {
+      console.warn('OpenAI API key not configured, returning original prompt');
+      return [userPrompt];
+    }
+
     try {
-      const completion = await openai.chat.completions.create({
+      const completion = await openai!.chat.completions.create({
         model: 'gpt-4',
         messages: [
           {
@@ -63,9 +72,14 @@ export const aiService = {
 
   // Generate video using Replicate (Stable Video Diffusion)
   async generateVideoFromText(params: VideoGenerationParams): Promise<any> {
+    // If no OpenAI key, skip image generation
+    if (!openai) {
+      throw new Error('OpenAI API key not configured. Cannot generate image for video.');
+    }
+
     try {
       // First generate an image from the prompt using DALL-E
-      const imageResponse = await openai.images.generate({
+      const imageResponse = await openai!.images.generate({
         model: 'dall-e-3',
         prompt: params.prompt,
         size: '1024x1024',
@@ -152,8 +166,13 @@ export const aiService = {
 
   // Suggest improvements for a video prompt
   async suggestImprovements(currentPrompt: string): Promise<string[]> {
+    if (!openai) {
+      console.warn('OpenAI API key not configured, cannot suggest improvements');
+      return [];
+    }
+
     try {
-      const completion = await openai.chat.completions.create({
+      const completion = await openai!.chat.completions.create({
         model: 'gpt-4',
         messages: [
           {
@@ -189,8 +208,13 @@ export const aiService = {
 
   // Generate story structure suggestions
   async generateStoryStructure(theme: string, clipCount: number): Promise<any[]> {
+    if (!openai) {
+      console.warn('OpenAI API key not configured, cannot generate story structure');
+      return [];
+    }
+
     try {
-      const completion = await openai.chat.completions.create({
+      const completion = await openai!.chat.completions.create({
         model: 'gpt-4',
         messages: [
           {

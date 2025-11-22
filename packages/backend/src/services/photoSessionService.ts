@@ -1,6 +1,6 @@
 import { prisma } from '../config/database';
 import { storageService } from './storageService';
-import { addVideoGenerationJob } from './jobQueue';
+import { addPhotoGenerationJob } from './jobQueue';
 import { ConsistencyPromptBuilder } from './consistencyPromptBuilder';
 import { AIConsistencyEngine } from './aiConsistencyEngine';
 import { referenceService } from './referenceService';
@@ -171,7 +171,7 @@ export const photoSessionService = {
     });
 
     // Add to queue
-    await addVideoGenerationJob({
+    await addPhotoGenerationJob({
       jobId: job.id,
       userId: session.ownerId,
       jobType: 'PHOTO_TRYON',
@@ -242,7 +242,7 @@ export const photoSessionService = {
       },
     });
 
-    await addVideoGenerationJob({
+    await addPhotoGenerationJob({
       jobId: job.id,
       userId: session.ownerId,
       jobType: 'PHOTO_VARIATION',
@@ -283,7 +283,7 @@ export const photoSessionService = {
       },
     });
 
-    await addVideoGenerationJob({
+    await addPhotoGenerationJob({
       jobId: job.id,
       userId: session.ownerId,
       jobType: 'PHOTO_UPSCALE',
@@ -325,7 +325,7 @@ export const photoSessionService = {
       },
     });
 
-    await addVideoGenerationJob({
+    await addPhotoGenerationJob({
       jobId: job.id,
       userId: session.ownerId,
       jobType: 'PHOTO_ANIMATION',
