@@ -1,4 +1,4 @@
-import { videoGenerationQueue } from '../services/jobQueue';
+import { photoGenerationQueue } from '../services/jobQueue';
 import { prisma } from '../config/database';
 import { AIConsistencyEngine } from '../services/aiConsistencyEngine';
 import { QualityAssuranceService } from '../services/qualityAssuranceService';
@@ -16,14 +16,14 @@ import axios from 'axios';
  * - Animation
  */
 
-// Process photo session jobs
-videoGenerationQueue.process(async (job) => {
+// Process photo session jobs using dedicated photo queue
+photoGenerationQueue.process(async (job) => {
   const { jobId, userId, jobType, inputPayload } = job.data;
 
-  // Only process photo-related jobs in this worker
+  // This worker handles photo-related jobs
   const photoJobTypes = ['PHOTO_TRYON', 'PHOTO_VARIATION', 'PHOTO_UPSCALE', 'PHOTO_ANIMATION'];
   if (!photoJobTypes.includes(jobType)) {
-    // Let other workers handle non-photo jobs
+    console.log(`Ignoring non-photo job type: ${jobType}`);
     return;
   }
 
